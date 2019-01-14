@@ -20,7 +20,6 @@ public class MainActivity extends AppCompatActivity {
     Point mDifferencePt = new Point(0,0);
 
 
-
     public static boolean mFlagTouched = false;
     public static boolean mFlagScale = false;
     public static boolean mFlagRotate = false;
@@ -28,9 +27,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        //mLinearLayout = new LinearLayout(this);
-//        mLinearLayout = (LinearLayout)findViewById(R.id.llayout);
         setContentView(R.layout.activity_main);
 
         mLinearLayout = findViewById(R.id.llayout1);
@@ -39,22 +35,6 @@ public class MainActivity extends AppCompatActivity {
         mCustomDrawableView = new CustomDrawableView(this);
         mLinearLayout.addView(mCustomDrawableView);
         mCustomDrawableView.invalidate();
-
-/*      //DODAVANJE SLIKE
-        ImageView i = new ImageView(this);
-
-        //DRAWABLE
-        Resources res = this.getResources();
-        Drawable myImage = ResourcesCompat.getDrawable(res, R.drawable.my_image, null);
-
-        i.setImageResource(R.drawable.my_image);
-        //bolje bez??
-        //i.setAdjustViewBounds(true);
-        i.setLayoutParams(new Gallery.LayoutParams(ActionBar.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT));
-        mLinearLayout.addView(i);
-        setContentView(mLinearLayout);
-        */
 
     }
 
@@ -69,36 +49,41 @@ public class MainActivity extends AppCompatActivity {
                     mTouchedPt.x = (int) event.getX();
                     mTouchedPt.y = (int) event.getY();
 
+                    Point beginPoint = mCustomDrawableView.getmBeginPt();
+                    Point endPoint = mCustomDrawableView.getmEndPt();
+                    int imageWidth = mCustomDrawableView.getmWidth();
+                    int imageHeight = mCustomDrawableView.getHeight();
 
-                    if ((mTouchedPt.x > mCustomDrawableView.mBeginPt.x
-                            && mTouchedPt.y > mCustomDrawableView.mBeginPt.y)
-                            && (mTouchedPt.x < (mCustomDrawableView.mBeginPt.x+ mCustomDrawableView.mWidth)
-                            && mTouchedPt.y < (mCustomDrawableView.mBeginPt.y+ mCustomDrawableView.mHeight)))
+                    // IF IMAGE IS CLICKED
+                    if ((mTouchedPt.x > beginPoint.x && mTouchedPt.y > beginPoint.y)
+                            && (mTouchedPt.x < endPoint.x && mTouchedPt.y < endPoint.y))
                     {
                         mFlagTouched = true;
                         mFlagScale = false;
                         mFlagRotate = false;
                         mCustomDrawableView.invalidate();
                     }
-                    else if (mTouchedPt.x > mCustomDrawableView.mEndPt.x
-                            && mTouchedPt.y > mCustomDrawableView.mEndPt.y
-                            && mTouchedPt.x < (mCustomDrawableView.mEndPt.x + 100)
-                            && mTouchedPt.y < (mCustomDrawableView.mEndPt.y + 100))
+                    // IF RECT FOR SCALING IS CLICKED
+                    else if (mTouchedPt.x > endPoint.x
+                            && mTouchedPt.y > endPoint.y
+                            && mTouchedPt.x < (endPoint.x + 100)
+                            && mTouchedPt.y < (endPoint.y + 100))
                     {
                         mFlagScale = true;
                         mFlagRotate = false;
-                        //mFlagTouched = false;
                         Log.d(TAG, "SCALE");
                     }
-                    else if (mTouchedPt.x > (mCustomDrawableView.mBeginPt.x - 100)
-                            && mTouchedPt.y > (mCustomDrawableView.mBeginPt.y - 100)
-                            && mTouchedPt.x < mCustomDrawableView.mBeginPt.y
-                            && mTouchedPt.y < mCustomDrawableView.mBeginPt.y)
+                    // IF RECT FOR ROTATING IS CLICKED
+                    else if (mTouchedPt.x > (beginPoint.x - 100)
+                            && mTouchedPt.y > (beginPoint.y - 100)
+                            && mTouchedPt.x < beginPoint.x
+                            && mTouchedPt.y < beginPoint.y)
                     {
                             mFlagRotate = true;
                             mFlagScale = false;
                             Log.d(TAG, "ROTATE");
                     }
+                    // IF CLICKED SOMEWHERE ON CANVAS
                     else {
                         mFlagTouched = false;
                         mFlagScale = false;
@@ -106,106 +91,118 @@ public class MainActivity extends AppCompatActivity {
                         mCustomDrawableView.invalidate();
                     }
 
-
+/*
+/                   // ROTATE IMAGE
                     if (mFlagRotate) {
                         mCustomDrawableView.invalidate();
 
+                        if (mTouchedPt.x > (beginPoint.x - 100)
+                                && mTouchedPt.y > (beginPoint.y - 100)
+                                && mTouchedPt.x < beginPoint.y
+                                && mTouchedPt.y < beginPoint.y)
+                        {
+                            double inDegrees = 90;
+                            double angle = Math.toRadians(inDegrees);
 
-                    if (mTouchedPt.x > (mCustomDrawableView.mBeginPt.x - 100)
-                            && mTouchedPt.y > (mCustomDrawableView.mBeginPt.y - 100)
-                            && mTouchedPt.x < mCustomDrawableView.mBeginPt.y
-                            && mTouchedPt.y < mCustomDrawableView.mBeginPt.y)
-                    {
-                        double inDegrees = 90;
-                        double angle = Math.toRadians(inDegrees);
-
-                        int test = (int) Math.sin(angle);
-
-                        // 1. FIND CENTER
-                        int mid_x = mCustomDrawableView.mCenterPt.x;
-                        int mid_y = mCustomDrawableView.mCenterPt.y;
-
-                        // 2. PRETEND RECTANGLE IS AT THE ORIGIN
-                        mCustomDrawableView.mBeginPt.x = mCustomDrawableView.mBeginPt.x - mid_x;
-                        mCustomDrawableView.mBeginPt.y = mCustomDrawableView.mBeginPt.y - mid_y;
-                        mCustomDrawableView.mEndPt.x = mCustomDrawableView.mEndPt.x - mid_x;
-                        mCustomDrawableView.mEndPt.y = mCustomDrawableView.mEndPt.y - mid_y;
-
-                        int begin_x = mCustomDrawableView.mBeginPt.x;
-                        int begin_y = mCustomDrawableView.mBeginPt.y;
-                        int end_x = mCustomDrawableView.mEndPt.x;
-                        int end_y = mCustomDrawableView.mEndPt.y;
+                            // 1. FIND CENTER
+                            Point centerPoint = mCustomDrawableView.getmCenterPt();
 
 
-                        // 3. ROTATION MATRICES
-                        mCustomDrawableView.mBeginPt.x = begin_x * (int)Math.cos(angle) - begin_y * (int) Math.sin(angle);
-                        mCustomDrawableView.mBeginPt.y = begin_x * (int)Math.sin(angle) + begin_y * (int) Math.cos(angle);
-                        mCustomDrawableView.mEndPt.x =  end_x * (int)Math.cos(angle) - end_y * (int) Math.sin(angle);
-                        mCustomDrawableView.mEndPt.y = end_x * (int)Math.sin(angle) + end_y * (int) Math.cos(angle);
+                            //mCustomDrawableView.setmBeginPt(new Point(beginPoint.x - centerPoint.x, beginPoint.y - centerPoint.y));
+                            //mCustomDrawableView.setmEndPt(new Point(beginPoint.x - centerPoint.x, beginPoint.y - centerPoint.y));
+                            Point testRotateBegin = mCustomDrawableView.getmBeginPt();
+                            Point testRotateEnd = mCustomDrawableView.getmEndPt();
 
-                        mCustomDrawableView.mBeginPt.x = mCustomDrawableView.mBeginPt.x + mid_x - mCustomDrawableView.mHeight;
-                        mCustomDrawableView.mBeginPt.y = mCustomDrawableView.mBeginPt.y + mid_y;// + mid_x; //* (-1) + mid_y;
-                        mCustomDrawableView.mEndPt.x = mCustomDrawableView.mEndPt.x + mid_x + mCustomDrawableView.mHeight;
-                        mCustomDrawableView.mEndPt.y = mCustomDrawableView.mEndPt.y + mid_y;// - mid_x; //* (-1) + mid_y;
 
-                        Log.d(TAG, "middle x: " + mid_x + ", y:" + mid_y);
-                        Log.d(TAG, "begin x: " + mCustomDrawableView.mBeginPt.x + ", y:" + mCustomDrawableView.mBeginPt.y);
-                        Log.d(TAG, "end x: " + mCustomDrawableView.mEndPt.x  + ", y:" + mCustomDrawableView.mEndPt.y);
+                            // 2. PRETEND RECTANGLE IS AT THE ORIGIN
+                            testRotateBegin.x = testRotateBegin.x - centerPoint.x;
+                            testRotateBegin.y = testRotateBegin.y - centerPoint.y;
+                            testRotateEnd.x = testRotateEnd.x - centerPoint.x;
+                            testRotateEnd.y = testRotateEnd.y - centerPoint.y;
 
-                        mCustomDrawableView.invalidate();
 
-                    }
+                            int begin_x;
+                            int begin_y;
+                            int end_x;
+                            int end_y;
+
+                            // 3. ROTATION MATRICES
+                            begin_x = testRotateBegin.x * (int)Math.cos(angle) - testRotateBegin.y * (int) Math.sin(angle);
+                            begin_y = testRotateBegin.x * (int)Math.sin(angle) + testRotateBegin.y * (int) Math.cos(angle);
+                            end_x =  testRotateEnd.x * (int)Math.cos(angle) - testRotateEnd.y * (int) Math.sin(angle);
+                            end_y = testRotateEnd.x * (int)Math.sin(angle) + testRotateEnd.y * (int) Math.cos(angle);
+
+                            mCustomDrawableView.setmBeginPt(
+                                    new Point (begin_x + centerPoint.x - imageHeight,begin_y + centerPoint.y));
+                            mCustomDrawableView.setmEndPt(
+                                    new Point(end_x + centerPoint.x + imageHeight, end_y + centerPoint.y)
+                            );
+
+                            Log.d(TAG, "center x: " + centerPoint.x + ", y:" + centerPoint.y);
+                            Log.d(TAG, "begin x: " + mCustomDrawableView.mBeginPt.x + ", y:" + mCustomDrawableView.mBeginPt.y);
+                            Log.d(TAG, "end x: " + mCustomDrawableView.mEndPt.x  + ", y:" + mCustomDrawableView.mEndPt.y);
+
+                            mCustomDrawableView.invalidate();
+
+                        }
 
                 }
 
-                    break;
+
+                    break;*/
 
                 case MotionEvent.ACTION_MOVE:
 
                     mMovedPt.x = (int) event.getX();
                     mMovedPt.y = (int) event.getY();
 
+                    beginPoint = mCustomDrawableView.getmBeginPt();
+                    endPoint = mCustomDrawableView.getmEndPt();
+                    imageWidth = mCustomDrawableView.getmWidth();
+                    imageHeight = mCustomDrawableView.getHeight();
+
+                    //TODO: add limit on scaling outside the width and height of view
 
                     if (mFlagTouched == true) {
 
+                        // SCALE IMAGE
                         if (mFlagScale) {
 
-
-                                if ((mMovedPt.x - mCustomDrawableView.mBeginPt.x) > 200
-                                        && (mMovedPt.y - mCustomDrawableView.mBeginPt.y) > 200
-                                        && (mMovedPt.x - mCustomDrawableView.mBeginPt.x) < (mCustomDrawableView.mCanvasWidth-200)
-                                        && (mMovedPt.y - mCustomDrawableView.mBeginPt.y) < (mCustomDrawableView.mCanvasHeight-200))
+                                // IF RECT FOR SCALING IS STILL TOUCHED
+                                if ((mMovedPt.x - beginPoint.x) > 200
+                                        && (mMovedPt.y - beginPoint.y) > 200
+                                        && (mMovedPt.x - beginPoint.x) < (mCustomDrawableView.mCanvasWidth - 200)
+                                        && (mMovedPt.y - beginPoint.y) < (mCustomDrawableView.mCanvasHeight - 200))
                                 {
-                                    mCustomDrawableView.mEndPt.x = mMovedPt.x;
-                                    mCustomDrawableView.mEndPt.y = mMovedPt.y;
+                                    endPoint = new Point(mMovedPt.x, mMovedPt.y);
+                                    mCustomDrawableView.setmEndPt(endPoint);
+                                    mCustomDrawableView.setmWidth(endPoint.x - beginPoint.x);
+                                    mCustomDrawableView.setmHeight(endPoint.y - beginPoint.y);
 
-                                    mCustomDrawableView.mWidth = mCustomDrawableView.mEndPt.x - mCustomDrawableView.mBeginPt.x;
-                                    mCustomDrawableView.mHeight = mCustomDrawableView.mEndPt.y - mCustomDrawableView.mBeginPt.y;
                                     mCustomDrawableView.invalidate();
 
                                 }
 
-
                         }
 
-
-
+                        // MOVE IMAGE
                         else {
                             mDifferencePt.x = mMovedPt.x - mTouchedPt.x;
                             mDifferencePt.y = mMovedPt.y - mTouchedPt.y;
 
-                            int test_x = mCustomDrawableView.mBeginPt.x + mDifferencePt.x;
-                            int test_y = mCustomDrawableView.mBeginPt.y + mDifferencePt.y;
+                            int testBeginX = beginPoint.x + mDifferencePt.x;
+                            int testBeginY = beginPoint.y + mDifferencePt.y;
 
-                            //Log.d(TAG, "Begin point x: " + test_x + ",y :" + test_y);
-                            //Log.d(TAG, "End point x: " + (test_x + mCustomDrawableView.mWidth) + ",y :" + (test_y + mCustomDrawableView.mHeight));
+                            imageWidth = mCustomDrawableView.getmWidth();
+                            imageHeight = mCustomDrawableView.getmHeight();
 
-                            if ((test_x  >= 0) && (test_y >= 0) && ((test_x + mCustomDrawableView.mWidth) < mCustomDrawableView.mCanvasWidth) && ((test_y + mCustomDrawableView.mHeight) < mCustomDrawableView.mCanvasHeight)) {
+                            // IF INSIDE CANVAS
+                            if ((testBeginX  >= 0) && (testBeginY >= 0)
+                                    && ((testBeginX + imageWidth) < mCustomDrawableView.mCanvasWidth)
+                                    && ((testBeginY + imageHeight) < mCustomDrawableView.mCanvasHeight)) {
 
-                                mCustomDrawableView.mBeginPt.x = mCustomDrawableView.mBeginPt.x + mDifferencePt.x;
-                                mCustomDrawableView.mBeginPt.y = mCustomDrawableView.mBeginPt.y + mDifferencePt.y;
-                                mCustomDrawableView.mEndPt.x = mCustomDrawableView.mEndPt.x + mDifferencePt.x; //mCustomDrawableView.mBeginPt.x + mCustomDrawableView.mWidth;
-                                mCustomDrawableView.mEndPt.y = mCustomDrawableView.mEndPt.y + mDifferencePt.y; //mCustomDrawableView.mBeginPt.y + mCustomDrawableView.mHeight;
+                                mCustomDrawableView.setmBeginPt(new Point(testBeginX, testBeginY));
+                                mCustomDrawableView.setmEndPt(new Point(endPoint.x + mDifferencePt.x, endPoint.y + mDifferencePt.y));
                                 mCustomDrawableView.invalidate();
 
                                 mTouchedPt.x = mMovedPt.x;
