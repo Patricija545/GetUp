@@ -1,11 +1,15 @@
 package pripremazagetup.riteh.hr.pripremazagetup;
 
+import android.content.res.Resources;
 import android.graphics.Point;
+import android.graphics.drawable.Drawable;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 
 
@@ -13,7 +17,10 @@ public class MainActivity extends AppCompatActivity {
     String TAG = this.getClass().getSimpleName();
 
     LinearLayout mLinearLayout;
+    Button mBtnAddImage;
     CustomDrawableView mCustomDrawableView;
+    Drawable myImage;
+    Image mImage;
 
     Point mTouchedPt = new Point(0,0);
     Point mMovedPt = new Point(0,0);
@@ -23,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     public static boolean mFlagTouched = false;
     public static boolean mFlagScale = false;
     public static boolean mFlagRotate = false;
+    public static boolean mFlagAddImage = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,29 +38,44 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mLinearLayout = findViewById(R.id.llayout1);
+        mBtnAddImage = findViewById(R.id.btn);
         mLinearLayout.setOnTouchListener(handleTouch);
 
+        Resources res = this.getResources();
+        myImage = ResourcesCompat.getDrawable(res, R.drawable.my_image, null);
+
         mCustomDrawableView = new CustomDrawableView(this);
+
         mLinearLayout.addView(mCustomDrawableView);
         mCustomDrawableView.invalidate();
 
-    }
+        mBtnAddImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mFlagAddImage = true;
+                mCustomDrawableView.setmImage(myImage);
+                mImage = mCustomDrawableView.getImage();
+                mCustomDrawableView.invalidate();
+            }
+        });
 
+    }
 
     private View.OnTouchListener handleTouch = new View.OnTouchListener() {
 
         @Override
         public boolean onTouch(View v, MotionEvent event) {
+            mImage = mCustomDrawableView.getImage();
 
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
                     mTouchedPt.x = (int) event.getX();
                     mTouchedPt.y = (int) event.getY();
 
-                    Point beginPoint = mCustomDrawableView.getmBeginPt();
-                    Point endPoint = mCustomDrawableView.getmEndPt();
-                    int imageWidth = mCustomDrawableView.getmWidth();
-                    int imageHeight = mCustomDrawableView.getHeight();
+                    Point beginPoint = mImage.getmBeginPt();
+                    Point endPoint = mImage.getmEndPt();
+                    int imageWidth = mImage.getmWidth();
+                    int imageHeight = mImage.getmHeight();
 
                     // IF IMAGE IS CLICKED
                     if ((mTouchedPt.x > beginPoint.x && mTouchedPt.y > beginPoint.y)
@@ -91,8 +114,8 @@ public class MainActivity extends AppCompatActivity {
                         mCustomDrawableView.invalidate();
                     }
 
-/*
-/                   // ROTATE IMAGE
+
+/*                   // ROTATE IMAGE
                     if (mFlagRotate) {
                         mCustomDrawableView.invalidate();
 
@@ -142,24 +165,25 @@ public class MainActivity extends AppCompatActivity {
                             Log.d(TAG, "begin x: " + mCustomDrawableView.mBeginPt.x + ", y:" + mCustomDrawableView.mBeginPt.y);
                             Log.d(TAG, "end x: " + mCustomDrawableView.mEndPt.x  + ", y:" + mCustomDrawableView.mEndPt.y);
 
+                            mImage.setImageBounds();
                             mCustomDrawableView.invalidate();
 
                         }
 
                 }
 
-
-                    break;*/
+*/
+                    break;
 
                 case MotionEvent.ACTION_MOVE:
 
                     mMovedPt.x = (int) event.getX();
                     mMovedPt.y = (int) event.getY();
 
-                    beginPoint = mCustomDrawableView.getmBeginPt();
-                    endPoint = mCustomDrawableView.getmEndPt();
-                    imageWidth = mCustomDrawableView.getmWidth();
-                    imageHeight = mCustomDrawableView.getHeight();
+                    beginPoint = mImage.getmBeginPt();
+                    endPoint = mImage.getmEndPt();
+                    imageWidth = mImage.getmWidth();
+                    imageHeight = mImage.getmHeight();
 
                     //TODO: add limit on scaling outside the width and height of view
 
@@ -175,10 +199,10 @@ public class MainActivity extends AppCompatActivity {
                                         && (mMovedPt.y - beginPoint.y) < (mCustomDrawableView.mCanvasHeight - 200))
                                 {
                                     endPoint = new Point(mMovedPt.x, mMovedPt.y);
-                                    mCustomDrawableView.setmEndPt(endPoint);
-                                    mCustomDrawableView.setmWidth(endPoint.x - beginPoint.x);
-                                    mCustomDrawableView.setmHeight(endPoint.y - beginPoint.y);
-
+                                    mImage.setmEndPt(endPoint);
+                                    mImage.setmWidth(endPoint.x - beginPoint.x);
+                                    mImage.setmHeight(endPoint.y - beginPoint.y);
+                                    mImage.setImageBounds();
                                     mCustomDrawableView.invalidate();
 
                                 }
@@ -193,16 +217,17 @@ public class MainActivity extends AppCompatActivity {
                             int testBeginX = beginPoint.x + mDifferencePt.x;
                             int testBeginY = beginPoint.y + mDifferencePt.y;
 
-                            imageWidth = mCustomDrawableView.getmWidth();
-                            imageHeight = mCustomDrawableView.getmHeight();
+                            imageWidth = mImage.getmWidth();
+                            imageHeight = mImage.getmHeight();
 
                             // IF INSIDE CANVAS
                             if ((testBeginX  >= 0) && (testBeginY >= 0)
                                     && ((testBeginX + imageWidth) < mCustomDrawableView.mCanvasWidth)
                                     && ((testBeginY + imageHeight) < mCustomDrawableView.mCanvasHeight)) {
 
-                                mCustomDrawableView.setmBeginPt(new Point(testBeginX, testBeginY));
-                                mCustomDrawableView.setmEndPt(new Point(endPoint.x + mDifferencePt.x, endPoint.y + mDifferencePt.y));
+                                mImage.setmBeginPt(new Point(testBeginX, testBeginY));
+                                mImage.setmEndPt(new Point(endPoint.x + mDifferencePt.x, endPoint.y + mDifferencePt.y));
+                                mImage.setImageBounds();
                                 mCustomDrawableView.invalidate();
 
                                 mTouchedPt.x = mMovedPt.x;
