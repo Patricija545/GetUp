@@ -18,12 +18,14 @@ public class CustomDrawableView extends View {
     private ShapeDrawable mDrawable;
     int mCanvasHeight, mCanvasWidth;
     Image mImage[] = new Image[3];
+    int index = -1;
 
 
     void setmImage (Drawable image) {
-        mImage[0] = new Image(image);
+        index++;
+        mImage[index] = new Image(image);
     }
-    Image getImage() { return mImage[0];}
+    Image getImage(int num) { return mImage[num];}
 
     public CustomDrawableView(Context context) {
         super(context);
@@ -37,17 +39,42 @@ public class CustomDrawableView extends View {
 
 
         if (MainActivity.mFlagAddImage) {
-            mImage[0].getmImage().draw(canvas);
+            for (int i = 0; i <= index; i++) {
+                mImage[i].getmImage().draw(canvas);
+            }
+
         }
+
         if (MainActivity.mFlagTouched) {
-            mImage[0].setImageBounds();
-            mImage[0].getmImage().draw(canvas);
+            int currentIndex = MainActivity.currentIndex;
+
+            //Log.d(TAG, "current: " + currentIndex);
+
+            for (int i = 0; i <= index; i++) {
+                if (i != currentIndex) {
+                    mImage[i].setImageBounds();
+                    mImage[i].getmImage().draw(canvas);
+                }
+
+            }
+
+
+            mImage[currentIndex].setImageBounds();
+            mImage[currentIndex].getmImage().draw(canvas);
+
             // SCALE
-            mImage[0].setmScaleRect();
-            mImage[0].getScaleRect().draw(canvas);
+            mImage[currentIndex].setmScaleRect();
+            mImage[currentIndex].getScaleRect().draw(canvas);
             // ROTATE
-            mImage[0].setmRotateRect();
-            mImage[0].getmRotateRect().draw(canvas);
+            mImage[currentIndex].setmRotateRect();
+            mImage[currentIndex].getmRotateRect().draw(canvas);
+
+
+        }
+        else {
+            for (int i = 0; i <= index; i++) {
+                mImage[i].getmImage().draw(canvas);
+            }
         }
 
 
