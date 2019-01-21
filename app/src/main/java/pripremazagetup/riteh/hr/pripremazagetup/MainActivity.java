@@ -158,7 +158,9 @@ public class MainActivity extends AppCompatActivity {
                     Point beginPoint;
                     Point endPoint;
 
-                     for (int i = 0; i <= index; i++) {
+                     //for (int i = 0; i <= index; i++) {
+                    int i = 0;
+                    while (i <= index && (mFlagScale == false && mFlagTouched == false && mFlagRotate == false)) {
                         mImage = mCustomDrawableView.getImage(i);
 
                         beginPoint = mImage.getmBeginPt();
@@ -186,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
                             mFlagScale = true;
                             mFlagRotate = false;
                             currentIndex = i;
-                            Log.d(TAG, "SCALE");
+                            Log.d(TAG, "SCALE INDEX: " + currentIndex);
                             break;
                         }
                         // IF RECT FOR ROTATING IS CLICKED
@@ -208,6 +210,8 @@ public class MainActivity extends AppCompatActivity {
                             mFlagRotate = false;
                             mCustomDrawableView.invalidate();
                         }
+
+                        i++;
                     }
 
                     Log.d(TAG, "Current index: " + currentIndex + ": " + mFlagScale);
@@ -276,6 +280,8 @@ public class MainActivity extends AppCompatActivity {
                     break;
 
                 case MotionEvent.ACTION_MOVE:
+                    Log.d(TAG, "Current index MOVE: " + currentIndex + ": " + mFlagScale);
+
 
                     mMovedPt.x = (int) event.getX();
                     mMovedPt.y = (int) event.getY();
@@ -287,35 +293,9 @@ public class MainActivity extends AppCompatActivity {
 
                     // TODO: add limit on scaling outside the width and height of view
                     // TODO: scale "active" image
+
+                    // MOVE
                     if (mFlagTouched == true) {
-
-                        // SCALE IMAGE
-                        if (mFlagScale) {
-                            mImage = mCustomDrawableView.getImage(currentIndex);
-                            beginPoint = mImage.getmBeginPt();
-
-                            Log.d(TAG, "FLAG SCALE :" + (mMovedPt.x - beginPoint.x));
-
-
-                            // IF RECT FOR SCALING IS STILL TOUCHED
-                                if ((mMovedPt.x - beginPoint.x) > 100
-                                        && (mMovedPt.y - beginPoint.y) > 100
-                                        && (mMovedPt.x - beginPoint.x) < (mCustomDrawableView.mCanvasWidth - 100)
-                                        && (mMovedPt.y - beginPoint.y) < (mCustomDrawableView.mCanvasHeight - 100))
-                                {
-                                    endPoint = new Point(mMovedPt.x, mMovedPt.y);
-                                    mImage.setmEndPt(endPoint);
-                                    mImage.setmWidth(endPoint.x - beginPoint.x);
-                                    mImage.setmHeight(endPoint.y - beginPoint.y);
-                                    mImage.setImageBounds();
-                                    mCustomDrawableView.invalidate();
-
-                                }
-
-                        }
-
-                        // MOVE IMAGE
-                        else {
 
                             mImage = mCustomDrawableView.getImage(currentIndex);
 
@@ -342,13 +322,37 @@ public class MainActivity extends AppCompatActivity {
                                 mTouchedPt.y = mMovedPt.y;
                             }
 
-                        }
+                    }
+                    // SCALE
+                    else if (mFlagScale == true){
+                        mImage = mCustomDrawableView.getImage(currentIndex);
+                        beginPoint = mImage.getmBeginPt();
 
+                        Log.d(TAG, "FLAG SCALE :" + (mMovedPt.x - beginPoint.x));
+
+                        // IF RECT FOR SCALING IS STILL TOUCHED
+                        if ((mMovedPt.x - beginPoint.x) > 100
+                                && (mMovedPt.y - beginPoint.y) > 100
+                                && (mMovedPt.x - beginPoint.x) < (mCustomDrawableView.mCanvasWidth - 100)
+                                && (mMovedPt.y - beginPoint.y) < (mCustomDrawableView.mCanvasHeight - 100))
+                        {
+                            endPoint = new Point(mMovedPt.x, mMovedPt.y);
+                            mImage.setmEndPt(endPoint);
+                            mImage.setmWidth(endPoint.x - beginPoint.x);
+                            mImage.setmHeight(endPoint.y - beginPoint.y);
+                            mImage.setImageBounds();
+                            mCustomDrawableView.invalidate();
+
+                        }
                     }
 
                     break;
 
+
                 case MotionEvent.ACTION_UP:
+                    mFlagTouched = false;
+                    mFlagScale = false;
+                    mFlagRotate = false;
                     break;
             }
 
