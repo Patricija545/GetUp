@@ -21,7 +21,6 @@ public class MainActivity extends AppCompatActivity {
 
     LinearLayout mLinearLayout;
     Button mBtnAddImage;
-    Button mBtnAddImage2;
 
     Button mBtnDeleteImage;
     CustomDrawableView mCustomDrawableView;
@@ -29,7 +28,9 @@ public class MainActivity extends AppCompatActivity {
     Image mImage;
     Dialog mAddImageDialog;
     int index = -1;
+
     public static int currentIndex = -1;
+    public static int maxImageNum = 3;
 
     Point mTouchedPt = new Point(0,0);
     Point mMovedPt = new Point(0,0);
@@ -62,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
         // LISTENERS
         mLinearLayout.setOnTouchListener(handleTouch);
         mBtnAddImage.setOnClickListener(handleClickAddImage);
-        //mBtnDeleteImage.setOnClickListener(handleClickRemoveImage);
+        mBtnDeleteImage.setOnClickListener(handleClickRemoveImage);
 
     }
 
@@ -87,12 +88,7 @@ public class MainActivity extends AppCompatActivity {
             btn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    index++;
-                    mFlagAddImage = true;
-                    mCustomDrawableView.setmImage(myImage);
-                    mImage = mCustomDrawableView.getImage(index);
-                    mCustomDrawableView.invalidate();
-                    mAddImageDialog.dismiss();
+                    add_image(myImage);
                 }
             });
 
@@ -101,12 +97,7 @@ public class MainActivity extends AppCompatActivity {
             btn2.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    index++;
-                    mFlagAddImage = true;
-                    mCustomDrawableView.setmImage(myImage2);
-                    mImage = mCustomDrawableView.getImage(index);
-                    mCustomDrawableView.invalidate();
-                    mAddImageDialog.dismiss();
+                    add_image(myImage2);
                 }
             });
 
@@ -114,12 +105,7 @@ public class MainActivity extends AppCompatActivity {
             btn3.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    index++;
-                    mFlagAddImage = true;
-                    mCustomDrawableView.setmImage(myImage3);
-                    mImage = mCustomDrawableView.getImage(index);
-                    mCustomDrawableView.invalidate();
-                    mAddImageDialog.dismiss();
+                    add_image(myImage3);
                 }
             });
 
@@ -127,8 +113,22 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    // TODO: delete image
-/*
+
+    void add_image(Drawable img) {
+
+        if (index < (maxImageNum - 1)) {
+            index++;
+            mFlagAddImage = true;
+            mCustomDrawableView.setmImage(img);
+            mImage = mCustomDrawableView.getImage(index);
+            mCustomDrawableView.invalidate();
+            mAddImageDialog.dismiss();
+        }
+
+
+    }
+
+    // TODO: delete touched image
     private View.OnClickListener handleClickRemoveImage = new View.OnClickListener() {
 
         @Override
@@ -137,13 +137,14 @@ public class MainActivity extends AppCompatActivity {
             if (index > -1) {
                 mFlagAddImage = false;
                 mFlagTouched = false;
-                mCustomDrawableView.invalidate();
                 index--;
+                mCustomDrawableView.index = mCustomDrawableView.index - 1;
+                mCustomDrawableView.invalidate();
             }
 
         }
     };
-*/
+
     private View.OnTouchListener handleTouch = new View.OnTouchListener() {
 
         @Override
@@ -158,7 +159,6 @@ public class MainActivity extends AppCompatActivity {
                     Point beginPoint;
                     Point endPoint;
 
-                     //for (int i = 0; i <= index; i++) {
                     int i = 0;
                     while (i <= index && (mFlagScale == false && mFlagTouched == false && mFlagRotate == false)) {
                         mImage = mCustomDrawableView.getImage(i);
@@ -292,8 +292,6 @@ public class MainActivity extends AppCompatActivity {
                     int imageHeight = mImage.getmHeight();
 
                     // TODO: add limit on scaling outside the width and height of view
-                    // TODO: scale "active" image
-
                     // MOVE
                     if (mFlagTouched == true) {
 

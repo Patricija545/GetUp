@@ -17,7 +17,7 @@ public class CustomDrawableView extends View {
 
     private ShapeDrawable mDrawable;
     int mCanvasHeight, mCanvasWidth;
-    Image mImage[] = new Image[3];
+    Image mImage[] = new Image[MainActivity.maxImageNum];
     int index = -1;
 
 
