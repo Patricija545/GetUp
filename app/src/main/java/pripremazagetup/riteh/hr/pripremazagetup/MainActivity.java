@@ -2,32 +2,47 @@ package pripremazagetup.riteh.hr.pripremazagetup;
 
 import android.app.Dialog;
 import android.content.res.Resources;
-import android.graphics.Color;
 import android.graphics.Point;
-import android.graphics.drawable.ColorDrawable;
+import android.graphics.PorterDuff;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
+import android.widget.Spinner;
+import android.widget.TextView;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
     String TAG = this.getClass().getSimpleName();
 
     LinearLayout mLinearLayout;
     Button mBtnAddImage;
-
     Button mBtnDeleteImage;
+    Button mBtnAddText;
     CustomDrawableView mCustomDrawableView;
     Drawable myImage, myImage2, myImage3;
     Image mImage;
-    Dialog mAddImageDialog;
+    Dialog mAddImageDialog, mAddTextDialog;
+    EditText mText;
+    TextView mTextCanvas;
+    TextView mTextPreview;
+    Spinner spinnerFontFamily;
+    String mFontFamilyName;
+    int mFontSize = 18;
     int index = -1;
+    int mFontColorID;
+    int colors[] = {R.color.white, R.color.red, R.color.orange, R.color.yellow, R.color.green, R.color.turquoise, R.color.lightBlue, R.color.darkBlue, R.color.purple, R.color.pink};
 
     public static int currentIndex = -1;
     public static int maxImageNum = 3;
@@ -36,25 +51,30 @@ public class MainActivity extends AppCompatActivity {
     Point mMovedPt = new Point(0,0);
     Point mDifferencePt = new Point(0,0);
 
-
     public static boolean mFlagTouched = false;
     public static boolean mFlagScale = false;
     public static boolean mFlagRotate = false;
     public static boolean mFlagAddImage = false;
+    public static boolean mFlagDialogFirstOpen = true;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         // INITIALIZE VIEWS
-        mLinearLayout = findViewById(R.id.llayout1);
+        mLinearLayout = findViewById(R.id.drawLayout);
         mBtnAddImage = findViewById(R.id.btnAdd);
         mBtnDeleteImage = findViewById(R.id.btnDelete);
+        mBtnAddText = findViewById(R.id.btnText);
         mAddImageDialog = new Dialog(this);
+        mAddTextDialog = new Dialog(this);
+        mAddTextDialog.setContentView(R.layout.dialog_add_text);
         mCustomDrawableView = new CustomDrawableView(this);
-
+        mTextCanvas = findViewById(R.id.tvTextCanvas);
+        spinnerFontFamily = mAddTextDialog.findViewById(R.id.spinnerFontFamily);
+        spinnerFontFamily.setOnItemSelectedListener(this);
 
         // ADD VIEWS TO LAYOUT
         mLinearLayout.addView(mCustomDrawableView);
@@ -64,8 +84,161 @@ public class MainActivity extends AppCompatActivity {
         mLinearLayout.setOnTouchListener(handleTouch);
         mBtnAddImage.setOnClickListener(handleClickAddImage);
         mBtnDeleteImage.setOnClickListener(handleClickRemoveImage);
+        mBtnAddText.setOnClickListener(handleClickAddText);
+    }
+
+
+    // ADD TEXT DIALOG
+    private final View.OnClickListener handleClickAddText = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+
+            // SHOW DIALOG FOR ADDING TEXT
+            mAddTextDialog.show();
+
+            // INITIALIZE VIEWS
+            mTextPreview = mAddTextDialog.findViewById(R.id.previewText);
+
+            // SHOW COLORS ON LINEAR LAYOUT
+            LinearLayout layoutColors = mAddTextDialog.findViewById(R.id.llayoutcolor);
+
+            // ADD BUTTONS FOR COLOR PICKING ON FIRST OPENING
+            if (mFlagDialogFirstOpen) {
+
+                // CREATE ARRAY OF BUTTONS FOR DISPLAYING COLOR
+                Button colorButton[] = new Button[colors.length];
+
+                // CREATE BUTTON AND GIVE IT PARAMS AND BACKGROUND
+                for (int i = 0; i < colors.length; i++) {
+                    colorButton[i] = new Button(getApplicationContext());
+                    Resources res = getApplication().getResources();
+                    Drawable roundButton = ResourcesCompat.getDrawable(res, R.drawable.roundbutton, null);
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(100, 100, (float)0.1);
+                    params.setMargins(5,5,5,5);
+                    colorButton[i].setLayoutParams(params);
+                    colorButton[i].setBackground(roundButton);
+                    colorButton[i].setId(i);
+                }
+
+                // SET PROPER COLOR OF BUTTON
+                for (int i = 0; i < colors.length; i++) {
+                    colorButton[i].getBackground().setColorFilter(getResources().getColor(colors[i]), PorterDuff.Mode.SRC_OVER);
+                }
+
+                // ADD BUTTON TO VIEW
+                for (int i = 0; i < colors.length; i++) {
+                    layoutColors.addView(colorButton[i]);
+                }
+
+                // COLOR PICKER LISTENER
+                for (int i = 0; i < colors.length; i++) {
+                    colorButton[i].setOnClickListener(handleClickChooseColor);
+                }
+
+                //todo: SET THIS FLAG TO TRUE WHEN CLICKING BACK AND GOING OUT OF APPLICATION
+                mFlagDialogFirstOpen = false;
+            }
+
+
+            // GET TEXT SIZE
+            SeekBar fontSize = mAddTextDialog.findViewById(R.id.seekbar_font_size);
+            fontSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                    // MINIMUM FONT SIZE IZ 14 (MINIMUM OF SEEKBAR IS 0)
+                    mFontSize = i + 14;
+                    mTextPreview.setTextSize(mFontSize);
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) { }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) { }
+            });
+
+            // LISTENER FOR INPUT TEXT TO WRITE MOTIVATIONAL WORDS TO YOURSELF
+            mText = mAddTextDialog.findViewById(R.id.textCanvas);
+            mText.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+
+                @Override
+                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                    // GET TEXT WHICH WILL BE PUT ON CANVAS AND SHOW IT IN PREVIEW SECTION
+                    String mTextString = mText.getText().toString();
+                    mTextPreview.setText(mTextString);
+                }
+
+                @Override
+                public void afterTextChanged(Editable editable) { }
+            });
+
+
+            // DONE WITH DIALOG FOR TEXT ADD
+            Button btnAddTextToCanvas = mAddTextDialog.findViewById(R.id.btnAddText2);
+            btnAddTextToCanvas.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    // SET ALL SELECTED TO TEXT ON CANVAS
+                    mTextCanvas.setText(mText.getText().toString());
+                    mTextCanvas.setTextSize(mFontSize);
+                    mTextCanvas.setTypeface(Typeface.create(mFontFamilyName, Typeface.NORMAL));
+                    mTextCanvas.setTextColor(getResources().getColor(mFontColorID));
+                    mTextCanvas.setVisibility(View.VISIBLE);
+
+                    // CLOSE DIALOG
+                    mAddTextDialog.dismiss();
+                }
+            });
+
+        }
+    };
+
+    // SPINNER (SELECT FONT FAMILY) LISTENER
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        // GET SELECTED FONT FAMILY
+        String item = parent.getItemAtPosition(position).toString();
+
+        // SET FONT FAMILY NAME OF PREVIEW TEXT AND SAVE THAT FONT FAMILY NAME
+        switch (item) {
+            case "sans-serif":
+                mTextPreview.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
+                mFontFamilyName = "sans-serif";
+                break;
+            case "serif":
+                mTextPreview.setTypeface(Typeface.create("serif", Typeface.NORMAL));
+                mFontFamilyName = "serif";
+                break;
+            case "monospace":
+                mTextPreview.setTypeface(Typeface.create("monospace", Typeface.NORMAL));
+                mFontFamilyName = "monospace";
+                break;
+
+        }
 
     }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> adapterView) { }
+
+
+    private final View.OnClickListener handleClickChooseColor = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            // SAVE FONT COLOR ID
+
+            for (int i = 0; i < colors.length; i++) {
+                if (view.getId() == i) {
+                    // IF BUTTON IS CLICKED, SAVE ITS COLOR ID
+                    mTextPreview.setTextColor(getResources().getColor(colors[i]));
+                    mFontColorID = colors[i];
+                }
+            }
+
+        }
+    };
 
     private View.OnClickListener handleClickAddImage = new View.OnClickListener() {
 
@@ -165,8 +338,8 @@ public class MainActivity extends AppCompatActivity {
 
                         beginPoint = mImage.getmBeginPt();
                         endPoint = mImage.getmEndPt();
-                        //int imageWidth = mImage[index].getmWidth();
-                        //int imageHeight = mImage[index].getmHeight();
+                        //int imageWidth = mImage[mImageIndex].getmWidth();
+                        //int imageHeight = mImage[mImageIndex].getmHeight();
 
                         // IF IMAGE IS CLICKED
                         if ((mTouchedPt.x > beginPoint.x && mTouchedPt.y > beginPoint.y)
@@ -214,7 +387,7 @@ public class MainActivity extends AppCompatActivity {
                         i++;
                     }
 
-                    Log.d(TAG, "Current index: " + currentIndex + ": " + mFlagScale);
+                    Log.d(TAG, "Current mImageIndex: " + currentIndex + ": " + mFlagScale);
 
 
 
@@ -280,7 +453,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
 
                 case MotionEvent.ACTION_MOVE:
-                    Log.d(TAG, "Current index MOVE: " + currentIndex + ": " + mFlagScale);
+                    Log.d(TAG, "Current mImageIndex MOVE: " + currentIndex + ": " + mFlagScale);
 
 
                     mMovedPt.x = (int) event.getX();
@@ -357,5 +530,6 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
     };
+
 
 }

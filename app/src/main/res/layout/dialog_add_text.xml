@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="5dp"
+    android:gravity="center"
+    android:weightSum="1">
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.1"
+        android:text="Type motivational text or quote:"
+        android:textSize="20dp" />
+
+    <EditText
+        android:id="@+id/textCanvas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.1"
+        android:ems="10"
+        android:hint="Text to add on canvas"
+        android:inputType="textPersonName" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.1"
+        android:gravity="bottom"
+        android:text="Choose font:"
+        android:textSize="20sp" />
+
+    <Spinner
+        android:id="@+id/spinnerFontFamily"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.1"
+        android:entries="@array/spinner_entries" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.1"
+        android:text="Choose size:" />
+
+    <SeekBar
+        android:id="@+id/seekbar_font_size"
+        android:layout_width="300dip"
+        android:layout_height="wrap_content"
+        android:layout_margin="10px"
+        android:max="30"
+        android:progress="18"></SeekBar>
+    <!-- change max font size here maxfontSize = max + 14 -->
+
+    <LinearLayout
+        android:id="@+id/llayoutcolor"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="0.1"
+        android:orientation="horizontal">
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.1"
+        android:gravity="bottom"
+        android:text="Preview:"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/previewText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.1"
+        android:textColor="@color/black"
+        android:textSize="24sp" />
+
+    <Button
+        android:id="@+id/btnAddText2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="add text"
+        android:layout_weight="0.1"/>
+
+</LinearLayout>
