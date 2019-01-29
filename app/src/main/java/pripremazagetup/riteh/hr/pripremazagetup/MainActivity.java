@@ -1,11 +1,15 @@
 package pripremazagetup.riteh.hr.pripremazagetup;
 
 import android.app.Dialog;
+import android.content.Intent;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -21,6 +25,10 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
@@ -31,7 +39,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     Button mBtnDeleteImage;
     Button mBtnAddText;
     CustomDrawableView mCustomDrawableView;
-    Drawable myImage, myImage2, myImage3;
+    Drawable myImage;
     Image mImage;
     Dialog mAddImageDialog, mAddTextDialog;
     EditText mText;
@@ -57,6 +65,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public static boolean mFlagAddImage = false;
     public static boolean mFlagDialogFirstOpen = true;
 
+    private static final int SELECT_PICTURE = 1;
+    private String selectedImagePath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -228,7 +238,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         @Override
         public void onClick(View view) {
             // SAVE FONT COLOR ID
-
             for (int i = 0; i < colors.length; i++) {
                 if (view.getId() == i) {
                     // IF BUTTON IS CLICKED, SAVE ITS COLOR ID
@@ -245,43 +254,21 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         @Override
         public void onClick(View view) {
             mAddImageDialog.setContentView(R.layout.dialog_add_image);
-
-            // IMAGES
-            Resources res = getApplication().getResources();
-            myImage = ResourcesCompat.getDrawable(res, R.drawable.my_image, null);
-            myImage2 = ResourcesCompat.getDrawable(res, R.drawable.my_image2, null);
-            myImage3 = ResourcesCompat.getDrawable(res, R.drawable.my_image3, null);
-
-
-            //mAddImageDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             mAddImageDialog.show();
 
-            // TODO: Make one handle for all three buttons
             Button btn = (Button) mAddImageDialog.findViewById(R.id.btnImage);
             btn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    add_image(myImage);
+                    if ((index + 1) < maxImageNum) {
+                        get_image_from_phone_gallery();
+                    }
+                    else {
+                        Toast.makeText(getApplication(), "Maximum number of images is " + maxImageNum,
+                                Toast.LENGTH_LONG).show();
+                    }
                 }
             });
-
-
-            Button btn2 = (Button) mAddImageDialog.findViewById(R.id.btnImage2);
-            btn2.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    add_image(myImage2);
-                }
-            });
-
-            Button btn3 = (Button) mAddImageDialog.findViewById(R.id.btnImage3);
-            btn3.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    add_image(myImage3);
-                }
-            });
-
 
         }
     };
@@ -289,17 +276,69 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     void add_image(Drawable img) {
 
-        if (index < (maxImageNum - 1)) {
-            index++;
-            mFlagAddImage = true;
-            mCustomDrawableView.setmImage(img);
-            mImage = mCustomDrawableView.getImage(index);
-            mCustomDrawableView.invalidate();
-            mAddImageDialog.dismiss();
-        }
-
+        index++;
+        mFlagAddImage = true;
+        mCustomDrawableView.setmImage(img);
+        mImage = mCustomDrawableView.getImage(index);
+        mCustomDrawableView.invalidate();
+        mAddImageDialog.dismiss();
 
     }
+
+    void get_image_from_phone_gallery() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent,
+                "Select Picture"), SELECT_PICTURE);
+    }
+
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            if (requestCode == SELECT_PICTURE) {
+                Uri selectedImageUri = data.getData();
+                selectedImagePath = getPath(selectedImageUri);
+
+                try {
+                    InputStream inputStream = getContentResolver().openInputStream(selectedImageUri);
+                    myImage = Drawable.createFromStream(inputStream, selectedImageUri.toString() );
+                    add_image(myImage);
+
+                } catch (FileNotFoundException e) {
+                    Resources res = getApplication().getResources();
+                    myImage = ResourcesCompat.getDrawable(res, R.drawable.my_image, null);
+                }
+
+            }
+        }
+    }
+
+
+    public String getPath(Uri uri) {
+
+        if( uri == null ) {
+            Toast.makeText(this, "Can't get that image, sorry. :( Please try another one.",
+                    Toast.LENGTH_LONG).show();
+            return null;
+        }
+
+        String[] projection = { MediaStore.Images.Media.DATA };
+        Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
+
+        if( cursor != null ){
+            int column_index = cursor
+                    .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            String path = cursor.getString(column_index);
+            cursor.close();
+            return path;
+        }
+
+        return uri.getPath();
+    }
+
+
+
 
     // TODO: delete touched image
     private View.OnClickListener handleClickRemoveImage = new View.OnClickListener() {

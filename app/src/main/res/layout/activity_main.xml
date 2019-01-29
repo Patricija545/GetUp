@@ -25,10 +25,9 @@
                 android:id="@+id/tvTextCanvas"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-
                 android:layout_weight="0.1"
-                android:gravity="center"
-                android:textSize="22sp"
+                android:textSize="18sp"
+                android:layout_gravity="center"
                 android:visibility="invisible" />
 
             <LinearLayout
