@@ -1,6 +1,8 @@
 package pripremazagetup.riteh.hr.pripremazagetup;
 
+import android.graphics.Color;
 import android.graphics.Point;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
@@ -9,7 +11,6 @@ public class Image {
 
     Drawable mImage;
     Drawable mScaleRect;
-    Drawable mRotateRect;
 
     int mWidth = 400;
     int mHeight = 600;
@@ -22,37 +23,14 @@ public class Image {
         mImage = image;
         setImageBounds();
         setmScaleRect();
-        setmRotateRect();
     }
 
     public void setImageBounds() {mImage.setBounds(mBeginPt.x, mBeginPt.y , mEndPt.x, mEndPt.y);}
 
     public void setmScaleRect() {
         mScaleRect = new ShapeDrawable(new RectShape());
-        //mScaleRect.getPaint().setColor(getResources().getColor(R.color.colorPrimary));
+        mScaleRect.setColorFilter(Color.WHITE,PorterDuff.Mode.SRC_OVER);
         mScaleRect.setBounds(mEndPt.x, mEndPt.y, mEndPt.x + 100, mEndPt.y + 100);
-    }
-
-    public Drawable getScaleRect() {
-        return mScaleRect;
-    }
-
-    public void setmRotateRect() {
-        mRotateRect = new ShapeDrawable(new RectShape());
-        //mRotateRect.getPaint().setColor(getResources().getColor(R.color.colorPrimaryDark));
-        mRotateRect.setBounds(mBeginPt.x - 100, mBeginPt.y - 100, mBeginPt.x, mBeginPt.y);
-    }
-
-    public Drawable getmRotateRect() {
-        return mRotateRect;
-    }
-
-    public Drawable getmImage() {
-        return mImage;
-    }
-
-    public void setmImage(Drawable mImage) {
-        this.mImage = mImage;
     }
 
     public int getmWidth() {
@@ -90,13 +68,5 @@ public class Image {
     public Point getmCenterPt() {
         return mCenterPt;
     }
-
-    public void setmCenterPt(Point mCenterPt) {
-        this.mCenterPt = mCenterPt;
-    }
-
-
-
-
 
 }

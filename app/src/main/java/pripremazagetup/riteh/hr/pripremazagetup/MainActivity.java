@@ -29,6 +29,7 @@ import android.widget.Toast;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
@@ -48,22 +49,22 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     Spinner spinnerFontFamily;
     String mFontFamilyName;
     int mFontSize = 18;
-    int index = -1;
+    int mImgNum = 0;
     int mFontColorID;
     int colors[] = {R.color.white, R.color.red, R.color.orange, R.color.yellow, R.color.green, R.color.turquoise, R.color.lightBlue, R.color.darkBlue, R.color.purple, R.color.pink};
+    //ArrayList<Integer> drawOrderInt = new ArrayList<>();
+    //ArrayList<Integer> testInt = new ArrayList<>();
 
-    public static int currentIndex = -1;
-    public static int maxImageNum = 3;
+    int currentIndex = 0;
+    int maxImageNum = 3;
 
     Point mTouchedPt = new Point(0,0);
     Point mMovedPt = new Point(0,0);
     Point mDifferencePt = new Point(0,0);
 
     public static boolean mFlagTouched = false;
-    public static boolean mFlagScale = false;
-    public static boolean mFlagRotate = false;
-    public static boolean mFlagAddImage = false;
-    public static boolean mFlagDialogFirstOpen = true;
+    boolean mFlagScale = false;
+    boolean mFlagDialogFirstOpen = true;
 
     private static final int SELECT_PICTURE = 1;
     private String selectedImagePath;
@@ -91,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         mCustomDrawableView.invalidate();
 
         // LISTENERS
-        mLinearLayout.setOnTouchListener(handleTouch);
+        mLinearLayout.setOnTouchListener(handleTouchCanvas);
         mBtnAddImage.setOnClickListener(handleClickAddImage);
         mBtnDeleteImage.setOnClickListener(handleClickRemoveImage);
         mBtnAddText.setOnClickListener(handleClickAddText);
@@ -256,11 +257,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             mAddImageDialog.setContentView(R.layout.dialog_add_image);
             mAddImageDialog.show();
 
-            Button btn = (Button) mAddImageDialog.findViewById(R.id.btnImage);
-            btn.setOnClickListener(new View.OnClickListener() {
+            Button imageFromGallery = (Button) mAddImageDialog.findViewById(R.id.imageFromGallery);
+            imageFromGallery.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if ((index + 1) < maxImageNum) {
+                    if (mImgNum < maxImageNum) {
                         get_image_from_phone_gallery();
                     }
                     else {
@@ -275,14 +276,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
 
     void add_image(Drawable img) {
-
-        index++;
-        mFlagAddImage = true;
         mCustomDrawableView.setmImage(img);
-        mImage = mCustomDrawableView.getImage(index);
+        mImage = mCustomDrawableView.getImage(mImgNum);
+        mImgNum ++;
         mCustomDrawableView.invalidate();
         mAddImageDialog.dismiss();
-
+        //drawOrderInt.add(index);
+        //testInt.add(index);
     }
 
     void get_image_from_phone_gallery() {
@@ -338,26 +338,21 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
 
-
-
-    // TODO: delete touched image
     private View.OnClickListener handleClickRemoveImage = new View.OnClickListener() {
 
         @Override
         public void onClick(View view) {
-
-            if (index > -1) {
-                mFlagAddImage = false;
+            if (mImgNum > 0) {
                 mFlagTouched = false;
-                index--;
-                mCustomDrawableView.index = mCustomDrawableView.index - 1;
+                mCustomDrawableView.deleteImage(currentIndex);
+                mImgNum--;
                 mCustomDrawableView.invalidate();
             }
 
         }
     };
 
-    private View.OnTouchListener handleTouch = new View.OnTouchListener() {
+    private View.OnTouchListener handleTouchCanvas = new View.OnTouchListener() {
 
         @Override
         public boolean onTouch(View v, MotionEvent event) {
@@ -371,14 +366,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     Point beginPoint;
                     Point endPoint;
 
-                    int i = 0;
-                    while (i <= index && (mFlagScale == false && mFlagTouched == false && mFlagRotate == false)) {
-                        mImage = mCustomDrawableView.getImage(i);
+                    int imgNum = mCustomDrawableView.drawOrderImg.size();
+                    for (int i = 0; i < imgNum; i++) { // && (!mFlagScale && !mFlagTouched && !mFlagRotate)) {
+                        mImage = mCustomDrawableView.drawOrderImg.get(i);
 
                         beginPoint = mImage.getmBeginPt();
                         endPoint = mImage.getmEndPt();
-                        //int imageWidth = mImage[mImageIndex].getmWidth();
-                        //int imageHeight = mImage[mImageIndex].getmHeight();
 
                         // IF IMAGE IS CLICKED
                         if ((mTouchedPt.x > beginPoint.x && mTouchedPt.y > beginPoint.y)
@@ -386,115 +379,34 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         {
                             mFlagTouched = true;
                             mFlagScale = false;
-                            mFlagRotate = false;
-                            mCustomDrawableView.invalidate();
                             currentIndex = i;
+                            //mCustomDrawableView.putTouchedImageFirst(currentIndex);
+                            mCustomDrawableView.invalidate();
                             break;
                         }
                         // IF RECT FOR SCALING IS CLICKED
-                        else if (mTouchedPt.x > endPoint.x
-                                && mTouchedPt.y > endPoint.y
-                                && mTouchedPt.x < (endPoint.x + 100)
-                                && mTouchedPt.y < (endPoint.y + 100))
+                        else if (mTouchedPt.x > endPoint.x && mTouchedPt.y > endPoint.y
+                                && mTouchedPt.x < (endPoint.x + 100) && mTouchedPt.y < (endPoint.y + 100))
                         {
                             mFlagScale = true;
-                            mFlagRotate = false;
                             currentIndex = i;
                             Log.d(TAG, "SCALE INDEX: " + currentIndex);
-                            break;
-                        }
-                        // IF RECT FOR ROTATING IS CLICKED
-                        else if (mTouchedPt.x > (beginPoint.x - 100)
-                                && mTouchedPt.y > (beginPoint.y - 100)
-                                && mTouchedPt.x < beginPoint.x
-                                && mTouchedPt.y < beginPoint.y)
-                        {
-                            mFlagRotate = true;
-                            mFlagScale = false;
-                            currentIndex = i;
-                            Log.d(TAG, "ROTATE");
                             break;
                         }
                         // IF CLICKED SOMEWHERE ON CANVAS
                         else {
                             mFlagTouched = false;
                             mFlagScale = false;
-                            mFlagRotate = false;
                             mCustomDrawableView.invalidate();
                         }
 
-                        i++;
                     }
 
                     Log.d(TAG, "Current mImageIndex: " + currentIndex + ": " + mFlagScale);
 
-
-
-
-/*                   // ROTATE IMAGE
-                    if (mFlagRotate) {
-                        mCustomDrawableView.invalidate();
-
-                        if (mTouchedPt.x > (beginPoint.x - 100)
-                                && mTouchedPt.y > (beginPoint.y - 100)
-                                && mTouchedPt.x < beginPoint.y
-                                && mTouchedPt.y < beginPoint.y)
-                        {
-                            double inDegrees = 90;
-                            double angle = Math.toRadians(inDegrees);
-
-                            // 1. FIND CENTER
-                            Point centerPoint = mCustomDrawableView.getmCenterPt();
-
-
-                            //mCustomDrawableView.setmBeginPt(new Point(beginPoint.x - centerPoint.x, beginPoint.y - centerPoint.y));
-                            //mCustomDrawableView.setmEndPt(new Point(beginPoint.x - centerPoint.x, beginPoint.y - centerPoint.y));
-                            Point testRotateBegin = mCustomDrawableView.getmBeginPt();
-                            Point testRotateEnd = mCustomDrawableView.getmEndPt();
-
-
-                            // 2. PRETEND RECTANGLE IS AT THE ORIGIN
-                            testRotateBegin.x = testRotateBegin.x - centerPoint.x;
-                            testRotateBegin.y = testRotateBegin.y - centerPoint.y;
-                            testRotateEnd.x = testRotateEnd.x - centerPoint.x;
-                            testRotateEnd.y = testRotateEnd.y - centerPoint.y;
-
-
-                            int begin_x;
-                            int begin_y;
-                            int end_x;
-                            int end_y;
-
-                            // 3. ROTATION MATRICES
-                            begin_x = testRotateBegin.x * (int)Math.cos(angle) - testRotateBegin.y * (int) Math.sin(angle);
-                            begin_y = testRotateBegin.x * (int)Math.sin(angle) + testRotateBegin.y * (int) Math.cos(angle);
-                            end_x =  testRotateEnd.x * (int)Math.cos(angle) - testRotateEnd.y * (int) Math.sin(angle);
-                            end_y = testRotateEnd.x * (int)Math.sin(angle) + testRotateEnd.y * (int) Math.cos(angle);
-
-                            mCustomDrawableView.setmBeginPt(
-                                    new Point (begin_x + centerPoint.x - imageHeight,begin_y + centerPoint.y));
-                            mCustomDrawableView.setmEndPt(
-                                    new Point(end_x + centerPoint.x + imageHeight, end_y + centerPoint.y)
-                            );
-
-                            Log.d(TAG, "center x: " + centerPoint.x + ", y:" + centerPoint.y);
-                            Log.d(TAG, "begin x: " + mCustomDrawableView.mBeginPt.x + ", y:" + mCustomDrawableView.mBeginPt.y);
-                            Log.d(TAG, "end x: " + mCustomDrawableView.mEndPt.x  + ", y:" + mCustomDrawableView.mEndPt.y);
-
-                            mImage.setImageBounds();
-                            mCustomDrawableView.invalidate();
-
-                        }
-
-                }
-
-*/
                     break;
 
                 case MotionEvent.ACTION_MOVE:
-                    Log.d(TAG, "Current mImageIndex MOVE: " + currentIndex + ": " + mFlagScale);
-
-
                     mMovedPt.x = (int) event.getX();
                     mMovedPt.y = (int) event.getY();
 
@@ -503,11 +415,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     int imageWidth = mImage.getmWidth();
                     int imageHeight = mImage.getmHeight();
 
-                    // TODO: add limit on scaling outside the width and height of view
                     // MOVE
-                    if (mFlagTouched == true) {
+                    if (mFlagTouched) {
 
                             mImage = mCustomDrawableView.getImage(currentIndex);
+
 
                             mDifferencePt.x = mMovedPt.x - mTouchedPt.x;
                             mDifferencePt.y = mMovedPt.y - mTouchedPt.y;
@@ -526,6 +438,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                                 mImage.setmBeginPt(new Point(testBeginX, testBeginY));
                                 mImage.setmEndPt(new Point(endPoint.x + mDifferencePt.x, endPoint.y + mDifferencePt.y));
                                 mImage.setImageBounds();
+                                mImage.setmScaleRect();
+
                                 mCustomDrawableView.invalidate();
 
                                 mTouchedPt.x = mMovedPt.x;
@@ -534,7 +448,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
                     }
                     // SCALE
-                    else if (mFlagScale == true){
+                    else if (mFlagScale){
                         mImage = mCustomDrawableView.getImage(currentIndex);
                         beginPoint = mImage.getmBeginPt();
 
@@ -551,6 +465,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                             mImage.setmWidth(endPoint.x - beginPoint.x);
                             mImage.setmHeight(endPoint.y - beginPoint.y);
                             mImage.setImageBounds();
+                            mImage.setmScaleRect();
                             mCustomDrawableView.invalidate();
 
                         }
@@ -560,9 +475,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
 
                 case MotionEvent.ACTION_UP:
+
+                    if (mFlagTouched) {
+                        mCustomDrawableView.putTouchedImageFirst(currentIndex);
+                    }
+
                     mFlagTouched = false;
                     mFlagScale = false;
-                    mFlagRotate = false;
                     break;
             }
 
