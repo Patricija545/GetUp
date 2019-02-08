@@ -10,44 +10,42 @@ public class CustomDrawableView extends View {
     String TAG = getClass().getSimpleName();
 
     int mCanvasHeight, mCanvasWidth;
-    ArrayList<Image> drawOrderImg = new ArrayList<>();
+    ArrayList<Image> imageBuffer = new ArrayList<>();
 
     public CustomDrawableView(Context context) {super(context); }
 
     protected void onDraw(Canvas canvas) {
-        mCanvasHeight = canvas.getHeight();
-        mCanvasWidth = canvas.getWidth();
+        mCanvasHeight = getHeight();
+        mCanvasWidth = getWidth();
 
-
-        if (MainActivity.mFlagTouched) {
-            for (int i = 0; i < drawOrderImg.size(); i++) {
-                drawOrderImg.get(i).mImage.draw(canvas);
-                drawOrderImg.get(i).mScaleRect.draw(canvas);
+        if (imageBuffer.size() > 0) {
+            for (int i = 0; i < imageBuffer.size(); i++) {
+                imageBuffer.get(i).mImage.draw(canvas);
             }
-        }
 
-        else {
-            for (int i = 0; i < drawOrderImg.size(); i++) {
-                drawOrderImg.get(i).mImage.draw(canvas);
-            }
+            imageBuffer.get(imageBuffer.size()-1).mImage.draw(canvas);
+            imageBuffer.get(imageBuffer.size()-1).mScaleRect.draw(canvas);
+            //imageBuffer.get(imageBuffer.size()-1).mDeleteRect.draw(canvas);
         }
 
     }
 
     void setmImage (Drawable image) {
         Image img = new Image(image);
-        drawOrderImg.add(img);
+        imageBuffer.add(img);
     }
 
-    Image getImage(int num) { return drawOrderImg.get(num);}
+    Image getImage(int num) { return imageBuffer.get(num);}
 
-    void deleteImage(int index) { drawOrderImg.remove(index); }
+    void deleteImage(int index) { imageBuffer.remove(index); }
 
     void putTouchedImageFirst (int index) {
-        Image tmp = drawOrderImg.get(index);
-        drawOrderImg.remove(index);
-        drawOrderImg.add(tmp);
+        Image tmp = imageBuffer.get(index);
+        imageBuffer.remove(index);
+        imageBuffer.add(tmp);
     }
+
+    ArrayList<Image> getImageBuffer() {return imageBuffer;}
 
 
 

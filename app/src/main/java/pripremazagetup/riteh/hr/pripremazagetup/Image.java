@@ -11,6 +11,7 @@ public class Image {
 
     Drawable mImage;
     Drawable mScaleRect;
+    Drawable mDeleteRect;
 
     int mWidth = 400;
     int mHeight = 600;
@@ -23,15 +24,24 @@ public class Image {
         mImage = image;
         setImageBounds();
         setmScaleRect();
+        setmDeleteRect();
     }
 
     public void setImageBounds() {mImage.setBounds(mBeginPt.x, mBeginPt.y , mEndPt.x, mEndPt.y);}
 
+
     public void setmScaleRect() {
         mScaleRect = new ShapeDrawable(new RectShape());
         mScaleRect.setColorFilter(Color.WHITE,PorterDuff.Mode.SRC_OVER);
-        mScaleRect.setBounds(mEndPt.x, mEndPt.y, mEndPt.x + 100, mEndPt.y + 100);
+        mScaleRect.setBounds(mEndPt.x - 50, mEndPt.y - 50, mEndPt.x + 50, mEndPt.y + 50);
     }
+
+    
+    public void setmDeleteRect() {
+        mDeleteRect = new ShapeDrawable(new RectShape());
+        mDeleteRect.setColorFilter(Color.RED,PorterDuff.Mode.SRC_OVER);
+        mDeleteRect.setBounds(mBeginPt.x - 50, mBeginPt.y - 50, mBeginPt.x + 50, mBeginPt.y + 50);
+    }*
 
     public int getmWidth() {
         return mWidth;

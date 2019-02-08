@@ -2,6 +2,7 @@ package pripremazagetup.riteh.hr.pripremazagetup;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Point;
@@ -9,6 +10,7 @@ import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.PersistableBundle;
 import android.provider.MediaStore;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -35,39 +37,27 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
     String TAG = this.getClass().getSimpleName();
 
-    LinearLayout mLinearLayout;
-    Button mBtnAddImage;
-    Button mBtnDeleteImage;
-    Button mBtnAddText;
     CustomDrawableView mCustomDrawableView;
-    Drawable myImage;
     Image mImage;
     Dialog mAddImageDialog, mAddTextDialog;
-    EditText mText;
     TextView mTextCanvas;
     TextView mTextPreview;
     Spinner spinnerFontFamily;
     String mFontFamilyName;
-    int mFontSize = 18;
-    int mImgNum = 0;
-    int mFontColorID;
-    int colors[] = {R.color.white, R.color.red, R.color.orange, R.color.yellow, R.color.green, R.color.turquoise, R.color.lightBlue, R.color.darkBlue, R.color.purple, R.color.pink};
-    //ArrayList<Integer> drawOrderInt = new ArrayList<>();
-    //ArrayList<Integer> testInt = new ArrayList<>();
 
-    int currentIndex = 0;
-    int maxImageNum = 3;
-
+    private int maxImageNum = 9;
     Point mTouchedPt = new Point(0,0);
-    Point mMovedPt = new Point(0,0);
-    Point mDifferencePt = new Point(0,0);
 
     public static boolean mFlagTouched = false;
     boolean mFlagScale = false;
     boolean mFlagDialogFirstOpen = true;
-
     private static final int SELECT_PICTURE = 1;
     private String selectedImagePath;
+    private int currentIndex = 0;
+    private int mFontSize = 18;
+    private int mImgNum = 0;
+    private int mFontColorID = R.color.white;
+    private int colors[] = {R.color.white, R.color.red, R.color.orange, R.color.yellow, R.color.green, R.color.turquoise, R.color.lightBlue, R.color.darkBlue, R.color.purple, R.color.pink};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,10 +65,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         setContentView(R.layout.activity_main);
 
         // INITIALIZE VIEWS
-        mLinearLayout = findViewById(R.id.drawLayout);
-        mBtnAddImage = findViewById(R.id.btnAdd);
-        mBtnDeleteImage = findViewById(R.id.btnDelete);
-        mBtnAddText = findViewById(R.id.btnText);
+        LinearLayout mLinearLayout = findViewById(R.id.drawLayout);
+        Button mBtnAddImage = findViewById(R.id.btnAdd);
+        Button mBtnDeleteImage = findViewById(R.id.btnDelete);
+        Button mBtnAddText = findViewById(R.id.btnText);
         mAddImageDialog = new Dialog(this);
         mAddTextDialog = new Dialog(this);
         mAddTextDialog.setContentView(R.layout.dialog_add_text);
@@ -98,13 +88,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         mBtnAddText.setOnClickListener(handleClickAddText);
     }
 
-
     // ADD TEXT DIALOG
     private final View.OnClickListener handleClickAddText = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
 
             // SHOW DIALOG FOR ADDING TEXT
+
             mAddTextDialog.show();
 
             // INITIALIZE VIEWS
@@ -146,7 +136,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     colorButton[i].setOnClickListener(handleClickChooseColor);
                 }
 
-                //todo: SET THIS FLAG TO TRUE WHEN CLICKING BACK AND GOING OUT OF APPLICATION
                 mFlagDialogFirstOpen = false;
             }
 
@@ -169,7 +158,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             });
 
             // LISTENER FOR INPUT TEXT TO WRITE MOTIVATIONAL WORDS TO YOURSELF
-            mText = mAddTextDialog.findViewById(R.id.textCanvas);
+           EditText  mText = mAddTextDialog.findViewById(R.id.textCanvas);
             mText.addTextChangedListener(new TextWatcher() {
                 @Override
                 public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
@@ -177,7 +166,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 @Override
                 public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                     // GET TEXT WHICH WILL BE PUT ON CANVAS AND SHOW IT IN PREVIEW SECTION
-                    String mTextString = mText.getText().toString();
+                    String mTextString = charSequence.toString();
                     mTextPreview.setText(mTextString);
                 }
 
@@ -192,7 +181,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 @Override
                 public void onClick(View view) {
                     // SET ALL SELECTED TO TEXT ON CANVAS
-                    mTextCanvas.setText(mText.getText().toString());
+                    mTextCanvas.setText(mTextPreview.getText().toString());
                     mTextCanvas.setTextSize(mFontSize);
                     mTextCanvas.setTypeface(Typeface.create(mFontFamilyName, Typeface.NORMAL));
                     mTextCanvas.setTextColor(getResources().getColor(mFontColorID));
@@ -251,12 +240,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     };
 
     private View.OnClickListener handleClickAddImage = new View.OnClickListener() {
-
         @Override
         public void onClick(View view) {
             mAddImageDialog.setContentView(R.layout.dialog_add_image);
             mAddImageDialog.show();
 
+            // GET IMAGE FROM GALLERY
             Button imageFromGallery = (Button) mAddImageDialog.findViewById(R.id.imageFromGallery);
             imageFromGallery.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -274,47 +263,50 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     };
 
-
+    // ADD IMAGE TO CANVAS
     void add_image(Drawable img) {
         mCustomDrawableView.setmImage(img);
         mImage = mCustomDrawableView.getImage(mImgNum);
         mImgNum ++;
         mCustomDrawableView.invalidate();
         mAddImageDialog.dismiss();
-        //drawOrderInt.add(index);
-        //testInt.add(index);
     }
 
     void get_image_from_phone_gallery() {
+        /*
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
         startActivityForResult(Intent.createChooser(intent,
                 "Select Picture"), SELECT_PICTURE);
+        */
+
+        // CHOOSE IMAGE FROM IMAGE FOLDER
+        Intent i = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(i, SELECT_PICTURE);
+
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == RESULT_OK) {
-            if (requestCode == SELECT_PICTURE) {
+        if (resultCode == RESULT_OK)
+        {
+            if (requestCode == SELECT_PICTURE)
+            {
                 Uri selectedImageUri = data.getData();
-                selectedImagePath = getPath(selectedImageUri);
+                selectedImagePath = getImagePath(selectedImageUri);
 
                 try {
                     InputStream inputStream = getContentResolver().openInputStream(selectedImageUri);
-                    myImage = Drawable.createFromStream(inputStream, selectedImageUri.toString() );
+                    Drawable myImage = Drawable.createFromStream(inputStream, selectedImageUri.toString() );
                     add_image(myImage);
 
-                } catch (FileNotFoundException e) {
-                    Resources res = getApplication().getResources();
-                    myImage = ResourcesCompat.getDrawable(res, R.drawable.my_image, null);
-                }
+                } catch (FileNotFoundException e) { }
 
             }
         }
     }
 
-
-    public String getPath(Uri uri) {
+    public String getImagePath(Uri uri) {
 
         if( uri == null ) {
             Toast.makeText(this, "Can't get that image, sorry. :( Please try another one.",
@@ -337,7 +329,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         return uri.getPath();
     }
 
-
     private View.OnClickListener handleClickRemoveImage = new View.OnClickListener() {
 
         @Override
@@ -352,124 +343,139 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     };
 
+    boolean imageTouched(Image img) {
+        Point beginPoint = img.getmBeginPt();
+        Point endPoint = img.getmEndPt();
+
+        if ((mTouchedPt.x > beginPoint.x && mTouchedPt.y > beginPoint.y)
+                && (mTouchedPt.x < endPoint.x && mTouchedPt.y < endPoint.y))
+        {
+            mImage = img;
+            return true;
+        }
+        return false;
+    }
+
+    boolean imageScale (Image img ) {
+        Point endPoint = img.getmEndPt();
+
+        if (mTouchedPt.x > (endPoint.x - 50) && mTouchedPt.y > (endPoint.y - 50)
+                && mTouchedPt.x < (endPoint.x + 50) && mTouchedPt.y < (endPoint.y + 50))
+        {
+            mImage = img;
+            return true;
+        }
+
+        return  false;
+    }
+
+    void moveImage (Point movedPt) {
+        Point beginPoint = mImage.getmBeginPt();
+        Point endPoint = mImage.getmEndPt();
+
+        Point mDifferencePt = new Point((movedPt.x - mTouchedPt.x), (movedPt.y - mTouchedPt.y));
+
+        int testBeginX = beginPoint.x + mDifferencePt.x;
+        int testBeginY = beginPoint.y + mDifferencePt.y;
+
+        int imageWidth = mImage.getmWidth();
+        int imageHeight = mImage.getmHeight();
+
+        // IF INSIDE CANVAS
+        if ((testBeginX  >= 0) && (testBeginY >= 0)
+                && ((testBeginX + imageWidth) < mCustomDrawableView.mCanvasWidth)
+                && ((testBeginY + imageHeight) < mCustomDrawableView.mCanvasHeight)) {
+
+            mImage.setmBeginPt(new Point(testBeginX, testBeginY));
+            mImage.setmEndPt(new Point(endPoint.x + mDifferencePt.x, endPoint.y + mDifferencePt.y));
+            mImage.setImageBounds();
+            mImage.setmScaleRect();
+            //mImage.setmDeleteRect();
+
+            mCustomDrawableView.invalidate();
+
+            // IMPORTANT FOR SMOOTH AND PRECISE MOVING OF IMAGE
+            mTouchedPt.x = movedPt.x;
+            mTouchedPt.y = movedPt.y;
+        }
+    }
+
+    void scaleImage(Point movedPt) {
+        Point beginPoint = mImage.getmBeginPt();
+
+        // IF RECT FOR SCALING IS STILL TOUCHED
+        if ((movedPt.x - beginPoint.x) > 100
+                && (movedPt.y - beginPoint.y) > 100
+                && (movedPt.x - beginPoint.x) < (mCustomDrawableView.mCanvasWidth - 100)
+                && (movedPt.y - beginPoint.y) < (mCustomDrawableView.mCanvasHeight - 100))
+        {
+            Point endPoint = new Point(movedPt.x, movedPt.y);
+            mImage.setmEndPt(endPoint);
+            mImage.setmWidth(endPoint.x - beginPoint.x);
+            mImage.setmHeight(endPoint.y - beginPoint.y);
+            mImage.setImageBounds();
+            mImage.setmScaleRect();
+            //mImage.setmDeleteRect();
+            mCustomDrawableView.invalidate();
+
+        }
+    }
+
+    int getCurrentIndex() {
+        return currentIndex;
+    }
+
+    void setCurrentIndex(int index) {
+        currentIndex = index;
+    }
+
     private View.OnTouchListener handleTouchCanvas = new View.OnTouchListener() {
 
         @Override
         public boolean onTouch(View v, MotionEvent event) {
-
 
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
                     mTouchedPt.x = (int) event.getX();
                     mTouchedPt.y = (int) event.getY();
 
-                    Point beginPoint;
-                    Point endPoint;
+                    // CHECK WHICH IMAGE IS TOUCHED
+                    int imgNum = mCustomDrawableView.imageBuffer.size();
+                    ArrayList<Image> mImageArray = mCustomDrawableView.getImageBuffer();
 
-                    int imgNum = mCustomDrawableView.drawOrderImg.size();
-                    for (int i = 0; i < imgNum; i++) { // && (!mFlagScale && !mFlagTouched && !mFlagRotate)) {
-                        mImage = mCustomDrawableView.drawOrderImg.get(i);
+                    for (int i = (imgNum-1); i >= 0; i--) {
 
-                        beginPoint = mImage.getmBeginPt();
-                        endPoint = mImage.getmEndPt();
-
-                        // IF IMAGE IS CLICKED
-                        if ((mTouchedPt.x > beginPoint.x && mTouchedPt.y > beginPoint.y)
-                                && (mTouchedPt.x < endPoint.x && mTouchedPt.y < endPoint.y))
-                        {
+                        // IMAGE IS TOUCHED
+                        if (imageTouched(mImageArray.get(i))) {
                             mFlagTouched = true;
-                            mFlagScale = false;
-                            currentIndex = i;
-                            //mCustomDrawableView.putTouchedImageFirst(currentIndex);
+                            setCurrentIndex(i);
                             mCustomDrawableView.invalidate();
                             break;
                         }
-                        // IF RECT FOR SCALING IS CLICKED
-                        else if (mTouchedPt.x > endPoint.x && mTouchedPt.y > endPoint.y
-                                && mTouchedPt.x < (endPoint.x + 100) && mTouchedPt.y < (endPoint.y + 100))
-                        {
+                        // RECT FOR SCALE IS TOUCHED
+                        else if (imageScale(mImageArray.get(i))) {
                             mFlagScale = true;
-                            currentIndex = i;
-                            Log.d(TAG, "SCALE INDEX: " + currentIndex);
+                            setCurrentIndex(i);
                             break;
                         }
-                        // IF CLICKED SOMEWHERE ON CANVAS
+                        // TOUCHED SOMEWHERE ON THE CANVAS
                         else {
                             mFlagTouched = false;
                             mFlagScale = false;
                             mCustomDrawableView.invalidate();
                         }
-
                     }
-
-                    Log.d(TAG, "Current mImageIndex: " + currentIndex + ": " + mFlagScale);
 
                     break;
 
                 case MotionEvent.ACTION_MOVE:
-                    mMovedPt.x = (int) event.getX();
-                    mMovedPt.y = (int) event.getY();
+                    int x = (int) event.getX();
+                    int y = (int) event.getY();
 
-                    beginPoint = mImage.getmBeginPt();
-                    endPoint = mImage.getmEndPt();
-                    int imageWidth = mImage.getmWidth();
-                    int imageHeight = mImage.getmHeight();
-
-                    // MOVE
-                    if (mFlagTouched) {
-
-                            mImage = mCustomDrawableView.getImage(currentIndex);
-
-
-                            mDifferencePt.x = mMovedPt.x - mTouchedPt.x;
-                            mDifferencePt.y = mMovedPt.y - mTouchedPt.y;
-
-                            int testBeginX = beginPoint.x + mDifferencePt.x;
-                            int testBeginY = beginPoint.y + mDifferencePt.y;
-
-                            imageWidth = mImage.getmWidth();
-                            imageHeight = mImage.getmHeight();
-
-                            // IF INSIDE CANVAS
-                            if ((testBeginX  >= 0) && (testBeginY >= 0)
-                                    && ((testBeginX + imageWidth) < mCustomDrawableView.mCanvasWidth)
-                                    && ((testBeginY + imageHeight) < mCustomDrawableView.mCanvasHeight)) {
-
-                                mImage.setmBeginPt(new Point(testBeginX, testBeginY));
-                                mImage.setmEndPt(new Point(endPoint.x + mDifferencePt.x, endPoint.y + mDifferencePt.y));
-                                mImage.setImageBounds();
-                                mImage.setmScaleRect();
-
-                                mCustomDrawableView.invalidate();
-
-                                mTouchedPt.x = mMovedPt.x;
-                                mTouchedPt.y = mMovedPt.y;
-                            }
-
-                    }
-                    // SCALE
-                    else if (mFlagScale){
-                        mImage = mCustomDrawableView.getImage(currentIndex);
-                        beginPoint = mImage.getmBeginPt();
-
-                        Log.d(TAG, "FLAG SCALE :" + (mMovedPt.x - beginPoint.x));
-
-                        // IF RECT FOR SCALING IS STILL TOUCHED
-                        if ((mMovedPt.x - beginPoint.x) > 100
-                                && (mMovedPt.y - beginPoint.y) > 100
-                                && (mMovedPt.x - beginPoint.x) < (mCustomDrawableView.mCanvasWidth - 100)
-                                && (mMovedPt.y - beginPoint.y) < (mCustomDrawableView.mCanvasHeight - 100))
-                        {
-                            endPoint = new Point(mMovedPt.x, mMovedPt.y);
-                            mImage.setmEndPt(endPoint);
-                            mImage.setmWidth(endPoint.x - beginPoint.x);
-                            mImage.setmHeight(endPoint.y - beginPoint.y);
-                            mImage.setImageBounds();
-                            mImage.setmScaleRect();
-                            mCustomDrawableView.invalidate();
-
-                        }
-                    }
+                    // MOVE IMAGE
+                    if (mFlagTouched) { moveImage(new Point(x, y)); }
+                    // SCALE IMAGE
+                    else if (mFlagScale){ scaleImage(new Point(x,y));}
 
                     break;
 
@@ -477,17 +483,19 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 case MotionEvent.ACTION_UP:
 
                     if (mFlagTouched) {
-                        mCustomDrawableView.putTouchedImageFirst(currentIndex);
+                        mCustomDrawableView.putTouchedImageFirst(getCurrentIndex());
                     }
 
                     mFlagTouched = false;
                     mFlagScale = false;
+
                     break;
             }
 
             return true;
         }
     };
+
 
 
 }
