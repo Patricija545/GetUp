@@ -1,8 +1,10 @@
 package pripremazagetup.riteh.hr.pripremazagetup;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.view.View;
 import java.util.ArrayList;
 
@@ -26,12 +28,13 @@ public class CustomDrawableView extends View {
             imageBuffer.get(imageBuffer.size()-1).mImage.draw(canvas);
             imageBuffer.get(imageBuffer.size()-1).mScaleRect.draw(canvas);
             //imageBuffer.get(imageBuffer.size()-1).mDeleteRect.draw(canvas);
+
         }
 
     }
 
-    void setmImage (Drawable image) {
-        Image img = new Image(image);
+    void setmImage (Drawable image, Bitmap imageBitmap) {
+        Image img = new Image(image, imageBitmap);
         imageBuffer.add(img);
     }
 

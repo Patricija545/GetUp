@@ -1,16 +1,20 @@
 package pripremazagetup.riteh.hr.pripremazagetup;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.PersistableBundle;
 import android.provider.MediaStore;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -38,7 +42,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     String TAG = this.getClass().getSimpleName();
 
     CustomDrawableView mCustomDrawableView;
-    Image mImage;
+    Image mImage = null;
+    Bitmap mImageTestBitmap;
     Dialog mAddImageDialog, mAddTextDialog;
     TextView mTextCanvas;
     TextView mTextPreview;
@@ -58,6 +63,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private int mImgNum = 0;
     private int mFontColorID = R.color.white;
     private int colors[] = {R.color.white, R.color.red, R.color.orange, R.color.yellow, R.color.green, R.color.turquoise, R.color.lightBlue, R.color.darkBlue, R.color.purple, R.color.pink};
+
+    private ArrayList<Bitmap> mImagesBitmap = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +93,35 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         mBtnAddImage.setOnClickListener(handleClickAddImage);
         mBtnDeleteImage.setOnClickListener(handleClickRemoveImage);
         mBtnAddText.setOnClickListener(handleClickAddText);
+
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        if (mImagesBitmap.size() > 0) {
+            outState.putParcelableArrayList("bitmap", mImagesBitmap);
+        }
+
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        if (savedInstanceState != null) {
+
+            mImagesBitmap = savedInstanceState.getParcelableArrayList("bitmap");
+
+            mImgNum = mImagesBitmap.size();
+            for (int i = 0; i < mImgNum; i++) {
+                mCustomDrawableView.setmImage(new BitmapDrawable(getResources(), mImagesBitmap.get(i)), mImagesBitmap.get(i));
+                mCustomDrawableView.invalidate();
+            }
+
+        }
+
     }
 
     // ADD TEXT DIALOG
@@ -264,12 +300,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     };
 
     // ADD IMAGE TO CANVAS
-    void add_image(Drawable img) {
-        mCustomDrawableView.setmImage(img);
+    void add_image(Drawable img, Bitmap imgBitmap) {
+        mCustomDrawableView.setmImage(img, imgBitmap);
         mImage = mCustomDrawableView.getImage(mImgNum);
         mImgNum ++;
         mCustomDrawableView.invalidate();
         mAddImageDialog.dismiss();
+        mImagesBitmap.add(imgBitmap);
+
     }
 
     void get_image_from_phone_gallery() {
@@ -297,8 +335,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
                 try {
                     InputStream inputStream = getContentResolver().openInputStream(selectedImageUri);
-                    Drawable myImage = Drawable.createFromStream(inputStream, selectedImageUri.toString() );
-                    add_image(myImage);
+                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                    bitmap = Bitmap.createScaledBitmap(bitmap, 400, 600,true);
+                    Drawable drawable = new BitmapDrawable(getResources(), bitmap);
+                    add_image(drawable, bitmap);
 
                 } catch (FileNotFoundException e) { }
 

@@ -1,8 +1,10 @@
 package pripremazagetup.riteh.hr.pripremazagetup;
 
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
@@ -12,6 +14,7 @@ public class Image {
     Drawable mImage;
     Drawable mScaleRect;
     Drawable mDeleteRect;
+    Bitmap mImageBitmap;
 
     int mWidth = 400;
     int mHeight = 600;
@@ -20,8 +23,9 @@ public class Image {
     Point mEndPt = new Point(mWidth, mHeight);
     Point mCenterPt = new Point(mBeginPt.x + mWidth/2,mBeginPt.y + mHeight/2);
 
-    public Image (Drawable image) {
+    public Image (Drawable image, Bitmap imageBitmap) {
         mImage = image;
+        mImageBitmap = imageBitmap;
         setImageBounds();
         setmScaleRect();
         setmDeleteRect();
@@ -36,12 +40,16 @@ public class Image {
         mScaleRect.setBounds(mEndPt.x - 50, mEndPt.y - 50, mEndPt.x + 50, mEndPt.y + 50);
     }
 
-    
+
     public void setmDeleteRect() {
         mDeleteRect = new ShapeDrawable(new RectShape());
         mDeleteRect.setColorFilter(Color.RED,PorterDuff.Mode.SRC_OVER);
         mDeleteRect.setBounds(mBeginPt.x - 50, mBeginPt.y - 50, mBeginPt.x + 50, mBeginPt.y + 50);
-    }*
+    }
+
+    public Bitmap getBitmap () {
+        return mImageBitmap;
+    }
 
     public int getmWidth() {
         return mWidth;
