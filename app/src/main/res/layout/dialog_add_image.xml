@@ -8,17 +8,31 @@ android:orientation="vertical"
 android:padding="5dp"
 android:gravity="center">
 
-<TextView
-    android:id="@+id/textView2"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:text="Choose image:"
-    android:textSize="20dp" />
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Choose image from:"
+        android:textSize="20dp" />
 
 <Button
     android:id="@+id/imageFromGallery"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:text="Add image from gallery" />
+
+    <Button
+        android:id="@+id/imageFromGoogle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="add image from google" />
+
+    <TextView
+        android:id="@+id/textView8"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:text="(why do it yourself if Google can do it for you?)" />
 
 </LinearLayout>

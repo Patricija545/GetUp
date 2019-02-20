@@ -1,10 +1,8 @@
 package pripremazagetup.riteh.hr.pripremazagetup;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.DialogInterface;
+import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -15,6 +13,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.provider.MediaStore;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -22,19 +21,31 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.squareup.picasso.Picasso;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 
@@ -44,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     CustomDrawableView mCustomDrawableView;
     Image mImage = null;
     Bitmap mImageTestBitmap;
-    Dialog mAddImageDialog, mAddTextDialog;
+    Dialog mAddImageDialog, mAddTextDialog, mAddImageGoogleDialog;
     TextView mTextCanvas;
     TextView mTextPreview;
     Spinner spinnerFontFamily;
@@ -63,21 +74,30 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private int mImgNum = 0;
     private int mFontColorID = R.color.white;
     private int colors[] = {R.color.white, R.color.red, R.color.orange, R.color.yellow, R.color.green, R.color.turquoise, R.color.lightBlue, R.color.darkBlue, R.color.purple, R.color.pink};
+    static private int imagesFromGoogleNum = 16;
 
     private ArrayList<Bitmap> mImagesBitmap = new ArrayList<>();
+
+    static ArrayList<String> imagesFromGoogle;
+    ProgressBar imageSearchProgress;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        imagesFromGoogle = new ArrayList<>();
+
         // INITIALIZE VIEWS
         LinearLayout mLinearLayout = findViewById(R.id.drawLayout);
         Button mBtnAddImage = findViewById(R.id.btnAdd);
         Button mBtnDeleteImage = findViewById(R.id.btnDelete);
         Button mBtnAddText = findViewById(R.id.btnText);
-        mAddImageDialog = new Dialog(this);
+        mAddImageDialog = new Dialog(this,android.R.style.ThemeOverlay_Material_Dark); //Theme_Black_NoTitleBar_Fullscreen);
         mAddTextDialog = new Dialog(this);
+        mAddImageGoogleDialog = new Dialog(this);
+
         mAddTextDialog.setContentView(R.layout.dialog_add_text);
         mCustomDrawableView = new CustomDrawableView(this);
         mTextCanvas = findViewById(R.id.tvTextCanvas);
@@ -296,8 +316,24 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 }
             });
 
+            Button imageFromGoogle = (Button) mAddImageDialog.findViewById(R.id.imageFromGoogle);
+            imageFromGoogle.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (mImgNum < maxImageNum) {
+                        mAddImageDialog.setContentView(R.layout.dialog_add_image_google);
+                        get_image_from_google();
+                    }
+                    else {
+                        Toast.makeText(getApplication(), "Maximum number of images is " + maxImageNum,
+                                Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
+
         }
     };
+
 
     // ADD IMAGE TO CANVAS
     void add_image(Drawable img, Bitmap imgBitmap) {
@@ -307,8 +343,152 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         mCustomDrawableView.invalidate();
         mAddImageDialog.dismiss();
         mImagesBitmap.add(imgBitmap);
+    }
+
+    void get_image_from_google() {
+        EditText imageName = mAddImageDialog.findViewById(R.id.imageName);
+        imageSearchProgress = mAddImageDialog.findViewById(R.id.progressBar2);
+        imageSearchProgress.setVisibility(View.INVISIBLE);
+
+        Button search = mAddImageDialog.findViewById(R.id.btnSearch);
+        search.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+
+
+                if (!imageName.getText().toString().equals("")) {
+                    imagesFromGoogle.clear();
+                    imageSearchProgress.setVisibility(View.VISIBLE);
+                    LinearLayout showImages = mAddImageDialog.findViewById(R.id.linearLayout);
+                    showImages.removeAllViews();
+
+
+                    String search_url = "https://pixabay.com/en/photos/" + //"https://www.google.com/search?site=imghp&tbm=isch&q=" +
+                            imageName.getText().toString();
+                    get_search_images search_task = new get_search_images(MainActivity.this, search_url);
+                    search_task.execute();
+                }
+            }
+        });
 
     }
+
+    private static class get_search_images extends AsyncTask<Void, Void, Void> {
+        private WeakReference<MainActivity> activityWeakRef;
+        private String url;
+
+        private Context mContext;
+
+        get_search_images(MainActivity context, String url) {
+            this.activityWeakRef = new WeakReference<>(context);
+            this.url = url;
+
+            mContext = context;
+        }
+
+        @Override
+        protected Void doInBackground(Void... arg0) {
+            getImages(this.url);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void v) {
+            MainActivity activity = activityWeakRef.get();
+            LinearLayout showImages = activity.mAddImageDialog.findViewById(R.id.linearLayout);
+
+            for (int i = 0; i < imagesFromGoogleNum; i = i + 2) {
+
+                    LinearLayout.LayoutParams param = new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                            0.5f
+                    );
+                    param.gravity = Gravity.CENTER;
+
+                    LinearLayout ll = new LinearLayout(activity.getBaseContext());
+                    ll.setOrientation(LinearLayout.HORIZONTAL);
+                    ll.setWeightSum(1);
+                    ll.setPadding(0,5, 0, 5);
+
+                    ImageView image1 = new ImageView(activity.getBaseContext());
+                    image1.setLayoutParams(param);
+                    Picasso.with(mContext).load(imagesFromGoogle.get(i)).into(image1);
+
+                    ImageView image2 = new ImageView(activity.getBaseContext());
+                    image2.setLayoutParams(param);
+                    Picasso.with(mContext).load(imagesFromGoogle.get(i+1)).into(image2);
+
+                    ll.addView(image1);
+                    ll.addView(image2);
+
+                    showImages.addView(ll);
+
+                    image1.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Drawable drawable = image1.getDrawable();
+                            Bitmap bitmap = ((BitmapDrawable)image1.getDrawable()).getBitmap();
+                            activity.add_image(drawable, bitmap);
+                            activity.mCustomDrawableView.invalidate();
+                            activity.mAddImageDialog.dismiss();
+
+                        }
+                    });
+
+                    image2.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Drawable drawable = image2.getDrawable();
+                            Bitmap bitmap = ((BitmapDrawable)image2.getDrawable()).getBitmap();
+                            activity.add_image(drawable, bitmap);
+                            activity.mCustomDrawableView.invalidate();
+                            activity.mAddImageDialog.dismiss();
+
+                        }
+                    });
+
+
+            }
+
+            TextView textView = activity.mAddImageDialog.findViewById(R.id.textView5);
+            textView.setVisibility(View.GONE);
+
+            ProgressBar imageSearchProgress = activity.mAddImageDialog.findViewById(R.id.progressBar2);
+            imageSearchProgress.setVisibility(View.INVISIBLE);
+
+        }
+    }
+
+    private static void getImages(String url) {
+        //jsoup: Java HTML Parser
+        //jsoup is a Java library for working with real-world HTML.
+        // It provides a very convenient API for extracting and manipulating data,
+        // using the best of DOM, CSS, and jquery-like methods.
+
+        Document doc = null;
+        try {
+            doc = Jsoup.connect(url)
+                    //.userAgent("Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.114 Safari/537.36")
+                    .get();
+        } catch (IOException e) { }
+
+        if (doc != null) {
+            Elements imgs = doc.select("img");
+            int i = 0;
+            for (Element img : imgs) {
+                String img_url = img.attr("src");
+                //if (img_url.isEmpty()) continue;
+                if (!(img_url.isEmpty()) &&  i < imagesFromGoogleNum) {
+                    imagesFromGoogle.add(img_url);
+                    i++;
+                }
+            }
+        }
+    }
+
+
 
     void get_image_from_phone_gallery() {
         /*
@@ -374,10 +554,19 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         @Override
         public void onClick(View view) {
             if (mImgNum > 0) {
-                mFlagTouched = false;
-                mCustomDrawableView.deleteImage(currentIndex);
-                mImgNum--;
-                mCustomDrawableView.invalidate();
+
+                try {
+                    mFlagTouched = false;
+                    mCustomDrawableView.deleteImage(currentIndex);
+                    mImgNum--;
+                    mCustomDrawableView.invalidate();
+                }
+                catch (Exception e) {
+                    Toast.makeText(getApplication(), "Please first click on image you want to delete",
+                            Toast.LENGTH_LONG).show();
+                }
+
+
             }
 
         }
