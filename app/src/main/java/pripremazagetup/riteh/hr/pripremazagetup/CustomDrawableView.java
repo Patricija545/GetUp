@@ -3,8 +3,8 @@ package pripremazagetup.riteh.hr.pripremazagetup;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Point;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
 import android.view.View;
 import java.util.ArrayList;
 
@@ -13,10 +13,12 @@ public class CustomDrawableView extends View {
 
     int mCanvasHeight, mCanvasWidth;
     ArrayList<Image> imageBuffer = new ArrayList<>();
+    ArrayList<MyText> textBuffer = new ArrayList<>();
 
     public CustomDrawableView(Context context) {super(context); }
 
     protected void onDraw(Canvas canvas) {
+        //canvas.drawColor(Color.WHITE);
         mCanvasHeight = getHeight();
         mCanvasWidth = getWidth();
 
@@ -31,6 +33,14 @@ public class CustomDrawableView extends View {
 
         }
 
+        if (textBuffer.size() > 0) {
+            for (int i = 0; i < textBuffer.size(); i++) {
+                MyText myText = textBuffer.get(i);
+                canvas.drawText(myText.getText(), myText.getBeginPoint().x, myText.getBeginPoint().y, myText.getPaint());
+            }
+
+        }
+
     }
 
     void setmImage (Drawable image, Bitmap imageBitmap) {
@@ -39,6 +49,13 @@ public class CustomDrawableView extends View {
     }
 
     Image getImage(int num) { return imageBuffer.get(num);}
+
+    void setText (String text, int color, int size, String fontFamily) {
+        MyText myText = new MyText(text, color, size, fontFamily, new Point(100, 100));
+        textBuffer.add(myText);
+    }
+
+    MyText getText(int num) { return textBuffer.get(num);}
 
     void deleteImage(int index) { imageBuffer.remove(index); }
 

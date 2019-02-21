@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".ImageSearch">
 
     <LinearLayout
         android:id="@+id/llayout0"
@@ -14,28 +14,20 @@
         android:weightSum="1">
 
         <LinearLayout
-            android:id="@+id/llayout1"
+            android:id="@+id/outerLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="0.1"
-            android:weightSum="1"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:weightSum="1">
 
-            <TextView
-                android:id="@+id/tvTextCanvas"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.1"
-                android:textSize="18sp"
-                android:layout_gravity="center"
-                android:visibility="invisible" />
 
             <LinearLayout
                 android:id="@+id/drawLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:layout_weight="0.9"></LinearLayout>
+                android:layout_weight="0.8"
+                android:orientation="vertical"></LinearLayout>
 
         </LinearLayout>
 
@@ -66,6 +58,14 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="0.33"
                 android:text="Add text" />
+
+
+            <Button
+                android:id="@+id/btnDone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.25"
+                android:text="done" />
 
 
         </LinearLayout>

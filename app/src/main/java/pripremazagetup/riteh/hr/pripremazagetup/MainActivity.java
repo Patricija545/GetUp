@@ -7,6 +7,7 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
@@ -35,6 +36,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.amulyakhare.textdrawable.TextDrawable;
 import com.squareup.picasso.Picasso;
 
 import org.jsoup.Jsoup;
@@ -56,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     Image mImage = null;
     Bitmap mImageTestBitmap;
     Dialog mAddImageDialog, mAddTextDialog, mAddImageGoogleDialog;
-    TextView mTextCanvas;
+    //TextView mTextCanvas;
     TextView mTextPreview;
     Spinner spinnerFontFamily;
     String mFontFamilyName;
@@ -91,6 +93,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         // INITIALIZE VIEWS
         LinearLayout mLinearLayout = findViewById(R.id.drawLayout);
+        LinearLayout mLinearLayoutOuter = findViewById(R.id.outerLayout);
+        /*
+        TextDrawable drawable = TextDrawable.builder()
+                .buildRect("A", Color.RED);
+        ImageView image = (ImageView) findViewById(R.id.imageView7);
+        image.setImageDrawable(drawable);
+        */
+
         Button mBtnAddImage = findViewById(R.id.btnAdd);
         Button mBtnDeleteImage = findViewById(R.id.btnDelete);
         Button mBtnAddText = findViewById(R.id.btnText);
@@ -100,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         mAddTextDialog.setContentView(R.layout.dialog_add_text);
         mCustomDrawableView = new CustomDrawableView(this);
-        mTextCanvas = findViewById(R.id.tvTextCanvas);
+        //mTextCanvas = findViewById(R.id.tvTextCanvas);
         spinnerFontFamily = mAddTextDialog.findViewById(R.id.spinnerFontFamily);
         spinnerFontFamily.setOnItemSelectedListener(this);
 
@@ -236,12 +246,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             btnAddTextToCanvas.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    String text = mTextPreview.getText().toString();
+                    int color = getResources().getColor(mFontColorID);
+                    add_text(text, color, mFontSize + 30, mFontFamilyName);
+
+                    /*
                     // SET ALL SELECTED TO TEXT ON CANVAS
                     mTextCanvas.setText(mTextPreview.getText().toString());
                     mTextCanvas.setTextSize(mFontSize);
                     mTextCanvas.setTypeface(Typeface.create(mFontFamilyName, Typeface.NORMAL));
                     mTextCanvas.setTextColor(getResources().getColor(mFontColorID));
                     mTextCanvas.setVisibility(View.VISIBLE);
+                    */
 
                     // CLOSE DIALOG
                     mAddTextDialog.dismiss();
@@ -294,6 +310,17 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         }
     };
+
+
+    // ADD TEXT TO CANVAS
+    void add_text(String text, int color, int fontSize, String fontFamily) {
+        mCustomDrawableView.setText(text, color, fontSize, fontFamily);
+        //mImage = mCustomDrawableView.getImage(mImgNum);
+        //mImgNum ++;
+        mCustomDrawableView.invalidate();
+        mAddImageDialog.dismiss();
+        //mImagesBitmap.add(imgBitmap);
+    }
 
     private View.OnClickListener handleClickAddImage = new View.OnClickListener() {
         @Override
@@ -562,7 +589,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     mCustomDrawableView.invalidate();
                 }
                 catch (Exception e) {
-                    Toast.makeText(getApplication(), "Please first click on image you want to delete",
+                    Toast.makeText(getApplication(), "Please first click on object you want to delete",
                             Toast.LENGTH_LONG).show();
                 }
 
