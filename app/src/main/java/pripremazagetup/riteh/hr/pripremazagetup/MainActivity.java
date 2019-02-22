@@ -7,7 +7,6 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
@@ -23,6 +22,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
@@ -36,7 +36,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.amulyakhare.textdrawable.TextDrawable;
 import com.squareup.picasso.Picasso;
 
 import org.jsoup.Jsoup;
@@ -55,18 +54,19 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     String TAG = this.getClass().getSimpleName();
 
     CustomDrawableView mCustomDrawableView;
-    Image mImage = null;
+    Object mObjectFromCanvas = null;
     Bitmap mImageTestBitmap;
     Dialog mAddImageDialog, mAddTextDialog, mAddImageGoogleDialog;
-    //TextView mTextCanvas;
     TextView mTextPreview;
     Spinner spinnerFontFamily;
     String mFontFamilyName;
 
     private int maxImageNum = 9;
+    private int maxTextNum = 9;
     Point mTouchedPt = new Point(0,0);
 
-    public static boolean mFlagTouched = false;
+    boolean mFlagTouched = false;
+    public static boolean mFlagCanvasClicked = false;
     boolean mFlagScale = false;
     boolean mFlagDialogFirstOpen = true;
     private static final int SELECT_PICTURE = 1;
@@ -74,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private int currentIndex = 0;
     private int mFontSize = 18;
     private int mImgNum = 0;
+    private int mTextNum = 0;
     private int mFontColorID = R.color.white;
     private int colors[] = {R.color.white, R.color.red, R.color.orange, R.color.yellow, R.color.green, R.color.turquoise, R.color.lightBlue, R.color.darkBlue, R.color.purple, R.color.pink};
     static private int imagesFromGoogleNum = 16;
@@ -93,14 +94,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         // INITIALIZE VIEWS
         LinearLayout mLinearLayout = findViewById(R.id.drawLayout);
-        LinearLayout mLinearLayoutOuter = findViewById(R.id.outerLayout);
-        /*
-        TextDrawable drawable = TextDrawable.builder()
-                .buildRect("A", Color.RED);
-        ImageView image = (ImageView) findViewById(R.id.imageView7);
-        image.setImageDrawable(drawable);
-        */
-
         Button mBtnAddImage = findViewById(R.id.btnAdd);
         Button mBtnDeleteImage = findViewById(R.id.btnDelete);
         Button mBtnAddText = findViewById(R.id.btnText);
@@ -160,7 +153,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         public void onClick(View view) {
 
             // SHOW DIALOG FOR ADDING TEXT
-
             mAddTextDialog.show();
 
             // INITIALIZE VIEWS
@@ -171,6 +163,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
             // ADD BUTTONS FOR COLOR PICKING ON FIRST OPENING
             if (mFlagDialogFirstOpen) {
+                mTextPreview.setTextColor(getResources().getColor(R.color.white));
 
                 // CREATE ARRAY OF BUTTONS FOR DISPLAYING COLOR
                 Button colorButton[] = new Button[colors.length];
@@ -207,12 +200,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
 
             // GET TEXT SIZE
-            SeekBar fontSize = mAddTextDialog.findViewById(R.id.seekbar_font_size);
-            fontSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            SeekBar seekBarFontSize = mAddTextDialog.findViewById(R.id.seekbar_font_size);
+            seekBarFontSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
                     // MINIMUM FONT SIZE IZ 14 (MINIMUM OF SEEKBAR IS 0)
-                    mFontSize = i + 14;
+                    mFontSize = i + 8;
                     mTextPreview.setTextSize(mFontSize);
                 }
 
@@ -223,22 +216,54 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 public void onStopTrackingTouch(SeekBar seekBar) { }
             });
 
+
             // LISTENER FOR INPUT TEXT TO WRITE MOTIVATIONAL WORDS TO YOURSELF
            EditText  mText = mAddTextDialog.findViewById(R.id.textCanvas);
             mText.addTextChangedListener(new TextWatcher() {
+                String beforeChanged;
                 @Override
-                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                    beforeChanged = charSequence.toString();
+                }
 
                 @Override
                 public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                     // GET TEXT WHICH WILL BE PUT ON CANVAS AND SHOW IT IN PREVIEW SECTION
-                    String mTextString = charSequence.toString();
-                    mTextPreview.setText(mTextString);
+                    String textString = charSequence.toString();
+
+                    int lines = 0;
+                    for (int z = 0; z < textString.length(); z++) {
+                        char c = textString.charAt(z);
+                        if (c == '\n') {
+                            lines++;
+                        }
+                    }
+
+                    Log.d(TAG, "Text lenght: " + textString.length());
+
+                    if (lines >= 4){
+                        mText.setText(beforeChanged);
+                        mText.setSelection(beforeChanged.length()-1);
+                        showToast("Maximum number of lines is 4. You can split your text in more parts by adding another text for second part. :)");
+                    }
+                    else if (textString.length() == 95) {
+                        showToast("Maximum number of characters is 100. You have 5 characters left.");
+                    }
+                    else if (textString.length() == 100) {
+                        showToast("Maximum number of characters is 100. You can split your text in more parts by adding another text for second part. :)");
+                    }
+                    else {
+                        mTextPreview.setText(textString);
+                    }
+
                 }
 
                 @Override
                 public void afterTextChanged(Editable editable) { }
             });
+
+
+
 
 
             // DONE WITH DIALOG FOR TEXT ADD
@@ -248,7 +273,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 public void onClick(View view) {
                     String text = mTextPreview.getText().toString();
                     int color = getResources().getColor(mFontColorID);
-                    add_text(text, color, mFontSize + 30, mFontFamilyName);
+
+                    if (mTextNum < maxTextNum) {
+                        add_text(text, color, (mFontSize + 30), mFontFamilyName, new Point(100, 100));
 
                     /*
                     // SET ALL SELECTED TO TEXT ON CANVAS
@@ -258,9 +285,21 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     mTextCanvas.setTextColor(getResources().getColor(mFontColorID));
                     mTextCanvas.setVisibility(View.VISIBLE);
                     */
+                    }
+                    else {
+                        showToast("Maximum number of texts is " + maxImageNum);
+                    }
 
                     // CLOSE DIALOG
                     mAddTextDialog.dismiss();
+
+                    // SET
+                    mText.setText("");
+                    spinnerFontFamily.setSelection(0);
+                    mFontFamilyName = "sans-serif";
+                    seekBarFontSize.setProgress(18);
+                    mTextPreview.setTextColor(getResources().getColor(R.color.white));
+
                 }
             });
 
@@ -287,7 +326,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 mTextPreview.setTypeface(Typeface.create("monospace", Typeface.NORMAL));
                 mFontFamilyName = "monospace";
                 break;
-
         }
 
     }
@@ -313,10 +351,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
 
     // ADD TEXT TO CANVAS
-    void add_text(String text, int color, int fontSize, String fontFamily) {
-        mCustomDrawableView.setText(text, color, fontSize, fontFamily);
-        //mImage = mCustomDrawableView.getImage(mImgNum);
-        //mImgNum ++;
+    void add_text(String text, int color, int fontSize, String fontFamily, Point beginPt) {
+        Log.d(TAG, "size of text: " + text.length());
+        mCustomDrawableView.setText(text, color, fontSize, fontFamily, beginPt);
+        mTextNum++;
         mCustomDrawableView.invalidate();
         mAddImageDialog.dismiss();
         //mImagesBitmap.add(imgBitmap);
@@ -337,8 +375,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         get_image_from_phone_gallery();
                     }
                     else {
-                        Toast.makeText(getApplication(), "Maximum number of images is " + maxImageNum,
-                                Toast.LENGTH_LONG).show();
+                        showToast("Maximum number of images is " + maxImageNum);
                     }
                 }
             });
@@ -352,8 +389,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         get_image_from_google();
                     }
                     else {
-                        Toast.makeText(getApplication(), "Maximum number of images is " + maxImageNum,
-                                Toast.LENGTH_LONG).show();
+                        showToast("Maximum number of images is " + maxImageNum);
                     }
                 }
             });
@@ -365,7 +401,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     // ADD IMAGE TO CANVAS
     void add_image(Drawable img, Bitmap imgBitmap) {
         mCustomDrawableView.setmImage(img, imgBitmap);
-        mImage = mCustomDrawableView.getImage(mImgNum);
         mImgNum ++;
         mCustomDrawableView.invalidate();
         mAddImageDialog.dismiss();
@@ -381,8 +416,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         search.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-
 
                 if (!imageName.getText().toString().equals("")) {
                     imagesFromGoogle.clear();
@@ -425,7 +458,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             MainActivity activity = activityWeakRef.get();
             LinearLayout showImages = activity.mAddImageDialog.findViewById(R.id.linearLayout);
 
-            for (int i = 0; i < imagesFromGoogleNum; i = i + 2) {
+
+            if (imagesFromGoogle.size() > 10) {
+                for (int i = 0; i < imagesFromGoogle.size(); i = i + 2) {
 
                     LinearLayout.LayoutParams param = new LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -476,11 +511,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         }
                     });
 
-
+                }
+            }
+            else {
+                Toast.makeText(activity, "I'm sorry but we can't find that kind of image. Please use english words and try to be more concrete. :)", Toast.LENGTH_LONG).show();
             }
 
-            TextView textView = activity.mAddImageDialog.findViewById(R.id.textView5);
-            textView.setVisibility(View.GONE);
+
+            //TextView textView = activity.mAddImageDialog.findViewById(R.id.textView5);
+            //textView.setVisibility(View.GONE);
 
             ProgressBar imageSearchProgress = activity.mAddImageDialog.findViewById(R.id.progressBar2);
             imageSearchProgress.setVisibility(View.INVISIBLE);
@@ -489,11 +528,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     private static void getImages(String url) {
-        //jsoup: Java HTML Parser
-        //jsoup is a Java library for working with real-world HTML.
-        // It provides a very convenient API for extracting and manipulating data,
-        // using the best of DOM, CSS, and jquery-like methods.
-
+        // JSOUP - JAVA HTML PARSER
         Document doc = null;
         try {
             doc = Jsoup.connect(url)
@@ -502,11 +537,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         } catch (IOException e) { }
 
         if (doc != null) {
+            imagesFromGoogle.clear();
+
             Elements imgs = doc.select("img");
             int i = 0;
             for (Element img : imgs) {
                 String img_url = img.attr("src");
-                //if (img_url.isEmpty()) continue;
                 if (!(img_url.isEmpty()) &&  i < imagesFromGoogleNum) {
                     imagesFromGoogle.add(img_url);
                     i++;
@@ -518,14 +554,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
 
     void get_image_from_phone_gallery() {
-        /*
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent,
-                "Select Picture"), SELECT_PICTURE);
-        */
-
         // CHOOSE IMAGE FROM IMAGE FOLDER
         Intent i = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(i, SELECT_PICTURE);
@@ -580,101 +608,163 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         @Override
         public void onClick(View view) {
-            if (mImgNum > 0) {
+            int objectNum = mCustomDrawableView.objectBuffer.size();
+            if (objectNum > 0) {
 
                 try {
                     mFlagTouched = false;
-                    mCustomDrawableView.deleteImage(currentIndex);
+                    mCustomDrawableView.deleteObject(currentIndex);
                     mImgNum--;
                     mCustomDrawableView.invalidate();
                 }
                 catch (Exception e) {
-                    Toast.makeText(getApplication(), "Please first click on object you want to delete",
-                            Toast.LENGTH_LONG).show();
+                    showToast("Please first click on object you want to delete");
                 }
-
-
             }
-
         }
     };
 
-    boolean imageTouched(Image img) {
-        Point beginPoint = img.getmBeginPt();
-        Point endPoint = img.getmEndPt();
+    boolean objectTouch(Object objectFromCanvas) {
 
-        if ((mTouchedPt.x > beginPoint.x && mTouchedPt.y > beginPoint.y)
-                && (mTouchedPt.x < endPoint.x && mTouchedPt.y < endPoint.y))
-        {
-            mImage = img;
-            return true;
+        if (objectFromCanvas instanceof Image) {
+            Image img = (Image)objectFromCanvas;
+
+            Point beginPoint = img.getmBeginPt();
+            Point endPoint = img.getmEndPt();
+
+            if ((mTouchedPt.x > beginPoint.x && mTouchedPt.y > beginPoint.y)
+                    && (mTouchedPt.x < endPoint.x && mTouchedPt.y < endPoint.y))
+            {
+                mObjectFromCanvas = img;
+                return true;
+            }
         }
+        else if (objectFromCanvas instanceof  MyText){
+            MyText text = (MyText) objectFromCanvas;
+
+            Point beginPoint = text.getBeginPt();
+
+            if (mTouchedPt.x > (beginPoint.x - 100) && mTouchedPt.y > (beginPoint.y - 100)
+                    && mTouchedPt.x < (beginPoint.x) && mTouchedPt.y < (beginPoint.y))
+            {
+                mObjectFromCanvas = text;
+                return true;
+            }
+        }
+
         return false;
     }
 
-    boolean imageScale (Image img ) {
-        Point endPoint = img.getmEndPt();
 
-        if (mTouchedPt.x > (endPoint.x - 50) && mTouchedPt.y > (endPoint.y - 50)
-                && mTouchedPt.x < (endPoint.x + 50) && mTouchedPt.y < (endPoint.y + 50))
-        {
-            mImage = img;
-            return true;
+    boolean objectScale(Object objectFromCanvas) {
+
+        if (objectFromCanvas instanceof Image) {
+            Image img = (Image) objectFromCanvas;
+            Point endPoint = img.getmEndPt();
+
+            if (mTouchedPt.x > (endPoint.x - 50) && mTouchedPt.y > (endPoint.y - 50)
+                    && mTouchedPt.x < (endPoint.x + 50) && mTouchedPt.y < (endPoint.y + 50))
+            {
+                mObjectFromCanvas = img;
+                return true; // !!!
+            }
         }
+
+        // SCALE OF TEXT?
+
 
         return  false;
     }
 
-    void moveImage (Point movedPt) {
-        Point beginPoint = mImage.getmBeginPt();
-        Point endPoint = mImage.getmEndPt();
 
-        Point mDifferencePt = new Point((movedPt.x - mTouchedPt.x), (movedPt.y - mTouchedPt.y));
+    void moveObject (Point movedPt) {
+        if (mObjectFromCanvas instanceof Image) {
+            Image img = (Image) mObjectFromCanvas;
+            Point beginPoint = img.getmBeginPt();
+            Point endPoint = img.getmEndPt();
+            Point mDifferencePt = new Point((movedPt.x - mTouchedPt.x), (movedPt.y - mTouchedPt.y));
 
-        int testBeginX = beginPoint.x + mDifferencePt.x;
-        int testBeginY = beginPoint.y + mDifferencePt.y;
+            int testBeginX = beginPoint.x + mDifferencePt.x;
+            int testBeginY = beginPoint.y + mDifferencePt.y;
+            int imageWidth = img.getmWidth();
+            int imageHeight = img.getmHeight();
 
-        int imageWidth = mImage.getmWidth();
-        int imageHeight = mImage.getmHeight();
+            // IF INSIDE CANVAS
+            if ((testBeginX  >= 0) && (testBeginY >= 0)
+                    && ((testBeginX + imageWidth) < mCustomDrawableView.mCanvasWidth)
+                    && ((testBeginY + imageHeight) < mCustomDrawableView.mCanvasHeight)) {
 
-        // IF INSIDE CANVAS
-        if ((testBeginX  >= 0) && (testBeginY >= 0)
-                && ((testBeginX + imageWidth) < mCustomDrawableView.mCanvasWidth)
-                && ((testBeginY + imageHeight) < mCustomDrawableView.mCanvasHeight)) {
+                img.setmBeginPt(new Point(testBeginX, testBeginY));
+                img.setmEndPt(new Point(endPoint.x + mDifferencePt.x, endPoint.y + mDifferencePt.y));
+                img.setImageBounds();
+                img.setmScaleRect();
+                //mObjectFromCanvas.setmDeleteRect();
 
-            mImage.setmBeginPt(new Point(testBeginX, testBeginY));
-            mImage.setmEndPt(new Point(endPoint.x + mDifferencePt.x, endPoint.y + mDifferencePt.y));
-            mImage.setImageBounds();
-            mImage.setmScaleRect();
-            //mImage.setmDeleteRect();
+                mCustomDrawableView.invalidate();
 
-            mCustomDrawableView.invalidate();
+                // IMPORTANT
+                mTouchedPt.x = movedPt.x;
+                mTouchedPt.y = movedPt.y;
+            }
+        }
 
-            // IMPORTANT FOR SMOOTH AND PRECISE MOVING OF IMAGE
+        else if (mObjectFromCanvas instanceof MyText) {
+            MyText text = (MyText) mObjectFromCanvas;
+            Point beginPoint = text.getBeginPt();
+            Point mDifferencePt = new Point((movedPt.x - mTouchedPt.x), (movedPt.y - mTouchedPt.y));
+
+            int testBeginX = beginPoint.x + mDifferencePt.x;
+            int testBeginY = beginPoint.y + mDifferencePt.y;
+            float textSize = text.getPaint().getTextSize();
+
+
+            // IF INSIDE CANVAS
+            if (mTouchedPt.x > (beginPoint.x - 100) && mTouchedPt.y > (beginPoint.y - 100)
+                    && mTouchedPt.x < (beginPoint.x) && mTouchedPt.y < (beginPoint.y))
+            {
+                text.setBeginPt(new Point(testBeginX, testBeginY));
+                text.setMoveRect();
+
+                Object textObject = text;
+                mCustomDrawableView.objectBuffer.set(currentIndex, textObject);
+                //mObjectFromCanvas.setmDeleteRect();
+
+                mCustomDrawableView.invalidate();
+            }
+
+            // IMPORTANT
             mTouchedPt.x = movedPt.x;
             mTouchedPt.y = movedPt.y;
-        }
+            }
+
     }
 
-    void scaleImage(Point movedPt) {
-        Point beginPoint = mImage.getmBeginPt();
 
-        // IF RECT FOR SCALING IS STILL TOUCHED
-        if ((movedPt.x - beginPoint.x) > 100
-                && (movedPt.y - beginPoint.y) > 100
-                && (movedPt.x - beginPoint.x) < (mCustomDrawableView.mCanvasWidth - 100)
-                && (movedPt.y - beginPoint.y) < (mCustomDrawableView.mCanvasHeight - 100))
-        {
-            Point endPoint = new Point(movedPt.x, movedPt.y);
-            mImage.setmEndPt(endPoint);
-            mImage.setmWidth(endPoint.x - beginPoint.x);
-            mImage.setmHeight(endPoint.y - beginPoint.y);
-            mImage.setImageBounds();
-            mImage.setmScaleRect();
-            //mImage.setmDeleteRect();
-            mCustomDrawableView.invalidate();
+    void scaleObject(Point movedPt) {
+
+        if (mObjectFromCanvas instanceof Image) {
+            Image img = (Image) mObjectFromCanvas;
+            Point beginPoint = img.getmBeginPt();
+
+            // IF RECT FOR SCALING IS STILL TOUCHED
+            if ((movedPt.x - beginPoint.x) > 100
+                    && (movedPt.y - beginPoint.y) > 100
+                    && (movedPt.x - beginPoint.x) < (mCustomDrawableView.mCanvasWidth - 100)
+                    && (movedPt.y - beginPoint.y) < (mCustomDrawableView.mCanvasHeight - 100))
+            {
+                Point endPoint = new Point(movedPt.x, movedPt.y);
+                img.setmEndPt(endPoint);
+                img.setmWidth(endPoint.x - beginPoint.x);
+                img.setmHeight(endPoint.y - beginPoint.y);
+                img.setImageBounds();
+                img.setmScaleRect();
+                //mObjectFromCanvas.setmDeleteRect();
+                mCustomDrawableView.invalidate();
+
+            }
 
         }
+
     }
 
     int getCurrentIndex() {
@@ -695,21 +785,21 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     mTouchedPt.x = (int) event.getX();
                     mTouchedPt.y = (int) event.getY();
 
-                    // CHECK WHICH IMAGE IS TOUCHED
-                    int imgNum = mCustomDrawableView.imageBuffer.size();
-                    ArrayList<Image> mImageArray = mCustomDrawableView.getImageBuffer();
+                    // CHECK WHICH OBJECT IS TOUCHED
+                    int objectNum = mCustomDrawableView.objectBuffer.size();
+                    ArrayList<Object> mObjectBuffer = mCustomDrawableView.getObjectBuffer();
 
-                    for (int i = (imgNum-1); i >= 0; i--) {
+                    for (int i = (objectNum-1); i >= 0; i--) {
 
-                        // IMAGE IS TOUCHED
-                        if (imageTouched(mImageArray.get(i))) {
+                        // OBJECT IS TOUCHED
+                        if (objectTouch(mObjectBuffer.get(i))) {
                             mFlagTouched = true;
                             setCurrentIndex(i);
-                            mCustomDrawableView.invalidate();
+                            //mCustomDrawableView.invalidate();
                             break;
                         }
                         // RECT FOR SCALE IS TOUCHED
-                        else if (imageScale(mImageArray.get(i))) {
+                        else if (objectScale(mObjectBuffer.get(i))) {
                             mFlagScale = true;
                             setCurrentIndex(i);
                             break;
@@ -728,10 +818,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     int x = (int) event.getX();
                     int y = (int) event.getY();
 
-                    // MOVE IMAGE
-                    if (mFlagTouched) { moveImage(new Point(x, y)); }
-                    // SCALE IMAGE
-                    else if (mFlagScale){ scaleImage(new Point(x,y));}
+                    // MOVE OBJECT
+                    if (mFlagTouched) { moveObject(new Point(x, y)); }
+                    // SCALE OBJECT
+                    else if (mFlagScale){ scaleObject(new Point(x,y));}
 
                     break;
 
@@ -739,9 +829,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 case MotionEvent.ACTION_UP:
 
                     if (mFlagTouched) {
-                        mCustomDrawableView.putTouchedImageFirst(getCurrentIndex());
+                       mCustomDrawableView.putTouchedObjectFirst(getCurrentIndex());
+                       mCustomDrawableView.invalidate();
+                        mFlagCanvasClicked = false;
+                    }
+                    else {
+                        mCustomDrawableView.invalidate();
+                        mFlagCanvasClicked = true;
                     }
 
+                    // VERY IMPORTANT FOR SCALE TO WORK
                     mFlagTouched = false;
                     mFlagScale = false;
 
@@ -753,5 +850,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     };
 
 
+    void showToast(String text) {
+        Toast.makeText(getApplication(), text, Toast.LENGTH_LONG).show();
+    }
 
 }

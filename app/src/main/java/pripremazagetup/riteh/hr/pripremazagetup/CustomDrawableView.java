@@ -12,8 +12,8 @@ public class CustomDrawableView extends View {
     String TAG = getClass().getSimpleName();
 
     int mCanvasHeight, mCanvasWidth;
-    ArrayList<Image> imageBuffer = new ArrayList<>();
-    ArrayList<MyText> textBuffer = new ArrayList<>();
+    // BOTH TEXT AND IMAGE OBJECTS
+    ArrayList<Object> objectBuffer = new ArrayList<>();
 
     public CustomDrawableView(Context context) {super(context); }
 
@@ -22,21 +22,37 @@ public class CustomDrawableView extends View {
         mCanvasHeight = getHeight();
         mCanvasWidth = getWidth();
 
-        if (imageBuffer.size() > 0) {
-            for (int i = 0; i < imageBuffer.size(); i++) {
-                imageBuffer.get(i).mImage.draw(canvas);
+        if (objectBuffer.size() > 0) {
+
+            for (int i = 0; i < objectBuffer.size(); i++) {
+                if (objectBuffer.get(i) instanceof  Image) {
+                    Image img = (Image)objectBuffer.get(i);
+                    img.mImage.draw(canvas);
+                }
+
+                else if (objectBuffer.get(i) instanceof  MyText) {
+                    MyText myText = (MyText) objectBuffer.get(i);
+
+                    String text = myText.getText();
+                    String[] lines = text.split("\n");
+
+                    int begin = 0;
+                    for (int j = 0; j < lines.length; j++) {
+                        canvas.drawText(lines[j], myText.getBeginPt().x, myText.getBeginPt().y + begin, myText.getPaint());
+                        begin = begin + (int)myText.getPaint().getTextSize();
+                    }
+                }
             }
 
-            imageBuffer.get(imageBuffer.size()-1).mImage.draw(canvas);
-            imageBuffer.get(imageBuffer.size()-1).mScaleRect.draw(canvas);
-            //imageBuffer.get(imageBuffer.size()-1).mDeleteRect.draw(canvas);
-
-        }
-
-        if (textBuffer.size() > 0) {
-            for (int i = 0; i < textBuffer.size(); i++) {
-                MyText myText = textBuffer.get(i);
-                canvas.drawText(myText.getText(), myText.getBeginPoint().x, myText.getBeginPoint().y, myText.getPaint());
+            if (!MainActivity.mFlagCanvasClicked) {
+                if (objectBuffer.get(objectBuffer.size()-1) instanceof Image) {
+                    Image img = (Image) objectBuffer.get(objectBuffer.size()-1);
+                    img.mScaleRect.draw(canvas);
+                }
+                else {
+                    MyText myText = (MyText) objectBuffer.get(objectBuffer.size()-1);
+                    myText.getMoveRect().draw(canvas);
+                }
             }
 
         }
@@ -45,27 +61,23 @@ public class CustomDrawableView extends View {
 
     void setmImage (Drawable image, Bitmap imageBitmap) {
         Image img = new Image(image, imageBitmap);
-        imageBuffer.add(img);
+        objectBuffer.add(img);
     }
 
-    Image getImage(int num) { return imageBuffer.get(num);}
-
-    void setText (String text, int color, int size, String fontFamily) {
-        MyText myText = new MyText(text, color, size, fontFamily, new Point(100, 100));
-        textBuffer.add(myText);
+    void setText (String text, int color, int size, String fontFamily, Point beginPoint) {
+        MyText myText = new MyText(text, color, size, fontFamily, beginPoint);
+        objectBuffer.add(myText);
     }
 
-    MyText getText(int num) { return textBuffer.get(num);}
+    void deleteObject(int index) { objectBuffer.remove(index); }
 
-    void deleteImage(int index) { imageBuffer.remove(index); }
-
-    void putTouchedImageFirst (int index) {
-        Image tmp = imageBuffer.get(index);
-        imageBuffer.remove(index);
-        imageBuffer.add(tmp);
+    void putTouchedObjectFirst (int index) {
+        Object tmpObject = objectBuffer.get(index);
+        objectBuffer.remove(index);
+        objectBuffer.add(tmpObject);
     }
 
-    ArrayList<Image> getImageBuffer() {return imageBuffer;}
+    ArrayList<Object> getObjectBuffer() {return objectBuffer;}
 
 
 

@@ -23,8 +23,10 @@
         android:layout_height="wrap_content"
         android:layout_weight="0.1"
         android:ems="10"
-        android:hint="Text to add on canvas"
-        android:inputType="textPersonName" />
+        android:inputType="textMultiLine"
+        android:maxLength="100"
+        android:maxLines="4"
+        android:maxHeight="200dp"/>
 
     <TextView
         android:id="@+id/textView3"
@@ -54,8 +56,8 @@
         android:layout_width="300dip"
         android:layout_height="wrap_content"
         android:layout_margin="10px"
-        android:max="30"
-        android:progress="18"></SeekBar>
+        android:max="16"
+        android:progress="8"></SeekBar>
     <!-- change max font size here maxfontSize = max + 14 -->
 
     <LinearLayout
