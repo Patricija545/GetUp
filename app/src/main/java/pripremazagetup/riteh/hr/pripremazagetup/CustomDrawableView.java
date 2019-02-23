@@ -48,24 +48,29 @@ public class CustomDrawableView extends View {
                 if (objectBuffer.get(objectBuffer.size()-1) instanceof Image) {
                     Image img = (Image) objectBuffer.get(objectBuffer.size()-1);
                     img.mScaleRect.draw(canvas);
+                    img.mDeleteRect.draw(canvas);
                 }
                 else {
                     MyText myText = (MyText) objectBuffer.get(objectBuffer.size()-1);
                     myText.getMoveRect().draw(canvas);
+                    myText.getDeleteRect().draw(canvas);
                 }
             }
-
         }
-
     }
 
     void setmImage (Drawable image, Bitmap imageBitmap) {
-        Image img = new Image(image, imageBitmap);
+        Drawable scaleRect = getResources().getDrawable(R.drawable.scale);
+        Drawable deleteRect = getResources().getDrawable(R.drawable.delete);
+        Image img = new Image(image, imageBitmap, scaleRect, deleteRect);
         objectBuffer.add(img);
+
     }
 
     void setText (String text, int color, int size, String fontFamily, Point beginPoint) {
-        MyText myText = new MyText(text, color, size, fontFamily, beginPoint);
+        Drawable moveRect = getResources().getDrawable(R.drawable.move);
+        Drawable deleteRect = getResources().getDrawable(R.drawable.delete);
+        MyText myText = new MyText(text, color, size, fontFamily, beginPoint, moveRect, deleteRect);
         objectBuffer.add(myText);
     }
 

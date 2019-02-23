@@ -16,15 +16,20 @@ public class Image {
     Drawable mDeleteRect;
     Bitmap mImageBitmap;
 
-    int mWidth = 400;
-    int mHeight = 600;
+    int mWidth;
+    int mHeight;
 
-    Point mBeginPt = new Point(0,0);
-    Point mEndPt = new Point(mWidth, mHeight);
+    Point mBeginPt = new Point(100,100);
+    Point mEndPt; // = new Point(mWidth, mHeight);
     Point mCenterPt = new Point(mBeginPt.x + mWidth/2,mBeginPt.y + mHeight/2);
 
-    public Image (Drawable image, Bitmap imageBitmap) {
+    public Image (Drawable image, Bitmap imageBitmap, Drawable scaleRect, Drawable deleteRect) {
+        mScaleRect = scaleRect;
+        mDeleteRect = deleteRect;
         mImage = image;
+        mWidth = mImage.getIntrinsicWidth() + 100;
+        mHeight = mImage.getIntrinsicHeight() + 100;
+        mEndPt = new Point(mWidth, mHeight);
         mImageBitmap = imageBitmap;
         setImageBounds();
         setmScaleRect();
@@ -35,16 +40,12 @@ public class Image {
 
 
     public void setmScaleRect() {
-        mScaleRect = new ShapeDrawable(new RectShape());
-        mScaleRect.setColorFilter(Color.WHITE,PorterDuff.Mode.SRC_OVER);
         mScaleRect.setBounds(mEndPt.x - 50, mEndPt.y - 50, mEndPt.x + 50, mEndPt.y + 50);
     }
 
 
     public void setmDeleteRect() {
-        mDeleteRect = new ShapeDrawable(new RectShape());
-        mDeleteRect.setColorFilter(Color.RED,PorterDuff.Mode.SRC_OVER);
-        mDeleteRect.setBounds(mBeginPt.x - 50, mBeginPt.y - 50, mBeginPt.x + 50, mBeginPt.y + 50);
+        mDeleteRect.setBounds(mEndPt.x - 50, mBeginPt.y - 50, mEndPt.x + 50, mBeginPt.y + 50);
     }
 
     public Bitmap getBitmap () {

@@ -26,7 +26,8 @@
         android:inputType="textMultiLine"
         android:maxLength="100"
         android:maxLines="4"
-        android:maxHeight="200dp"/>
+        android:maxHeight="100dp"
+        android:height="100dp"/>
 
     <TextView
         android:id="@+id/textView3"

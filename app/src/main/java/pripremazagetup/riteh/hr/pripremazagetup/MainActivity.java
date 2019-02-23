@@ -7,6 +7,7 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
@@ -68,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     boolean mFlagTouched = false;
     public static boolean mFlagCanvasClicked = false;
     boolean mFlagScale = false;
+    boolean mFlagDelete = false;
     boolean mFlagDialogFirstOpen = true;
     private static final int SELECT_PICTURE = 1;
     private String selectedImagePath;
@@ -97,8 +99,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         Button mBtnAddImage = findViewById(R.id.btnAdd);
         Button mBtnDeleteImage = findViewById(R.id.btnDelete);
         Button mBtnAddText = findViewById(R.id.btnText);
-        mAddImageDialog = new Dialog(this,android.R.style.ThemeOverlay_Material_Dark); //Theme_Black_NoTitleBar_Fullscreen);
-        mAddTextDialog = new Dialog(this);
+        mAddImageDialog = new Dialog(this,android.R.style.Theme_Light_NoTitleBar);//ThemeOverlay_Material_Dark); //Theme_Black_NoTitleBar_Fullscreen);
+        mAddTextDialog = new Dialog(this,android.R.style.Theme_Light_NoTitleBar);
         mAddImageGoogleDialog = new Dialog(this);
 
         mAddTextDialog.setContentView(R.layout.dialog_add_text);
@@ -239,8 +241,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         }
                     }
 
-                    Log.d(TAG, "Text lenght: " + textString.length());
-
                     if (lines >= 4){
                         mText.setText(beforeChanged);
                         mText.setSelection(beforeChanged.length()-1);
@@ -272,6 +272,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 @Override
                 public void onClick(View view) {
                     String text = mTextPreview.getText().toString();
+                    Paint p = new Paint();
+                    float vel = p.measureText(text);
                     int color = getResources().getColor(mFontColorID);
 
                     if (mTextNum < maxTextNum) {
@@ -400,7 +402,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     // ADD IMAGE TO CANVAS
     void add_image(Drawable img, Bitmap imgBitmap) {
+
+        Log.d(TAG, "size drawable, height: " + img.getIntrinsicHeight() + ", width: " + img.getIntrinsicWidth());
+        Log.d(TAG, "size bitmap, height: " + imgBitmap.getHeight() + ", width: " + imgBitmap.getWidth());
+
         mCustomDrawableView.setmImage(img, imgBitmap);
+        Image image = (Image) mCustomDrawableView.objectBuffer.get(currentIndex);
+        //image.setmWidth(500);//(img.getIntrinsicWidth());
+        //image.setmHeight(500);//(img.getIntrinsicHeight());
+
         mImgNum ++;
         mCustomDrawableView.invalidate();
         mAddImageDialog.dismiss();
@@ -551,8 +561,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     }
 
-
-
     void get_image_from_phone_gallery() {
         // CHOOSE IMAGE FROM IMAGE FOLDER
         Intent i = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -571,7 +579,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 try {
                     InputStream inputStream = getContentResolver().openInputStream(selectedImageUri);
                     Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                    bitmap = Bitmap.createScaledBitmap(bitmap, 400, 600,true);
+                    //bitmap = Bitmap.createScaledBitmap(bitmap, 400, 600,true);
                     Drawable drawable = new BitmapDrawable(getResources(), bitmap);
                     add_image(drawable, bitmap);
 
@@ -643,9 +651,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             MyText text = (MyText) objectFromCanvas;
 
             Point beginPoint = text.getBeginPt();
+            Point endPoint = text.getEndPt();
 
-            if (mTouchedPt.x > (beginPoint.x - 100) && mTouchedPt.y > (beginPoint.y - 100)
-                    && mTouchedPt.x < (beginPoint.x) && mTouchedPt.y < (beginPoint.y))
+            if ((mTouchedPt.x >= (beginPoint.x - 100) && mTouchedPt.y >= (beginPoint.y - 100))
+                    && (mTouchedPt.x <= endPoint.x && mTouchedPt.y <= endPoint.y))
             {
                 mObjectFromCanvas = text;
                 return true;
@@ -676,6 +685,57 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         return  false;
     }
 
+    boolean objectDelete(Object objectFromCanvas, int index) {
+        if (objectFromCanvas instanceof Image) {
+            Image img = (Image) objectFromCanvas;
+            Point beginPoint = img.getmBeginPt();
+            Point endPoint = img.getmEndPt();
+
+            if (mTouchedPt.x > (endPoint.x - 50) && mTouchedPt.y > (beginPoint.y - 50)
+                    && mTouchedPt.x < (endPoint.x + 50) && mTouchedPt.y < (beginPoint.y + 50))
+            {
+                //mObjectFromCanvas = img;
+
+                int objectNum = mCustomDrawableView.objectBuffer.size();
+                if (objectNum > 0)
+                {
+                    mFlagTouched = false;
+                    mCustomDrawableView.deleteObject(index);
+                    mImgNum--;
+                    mCustomDrawableView.invalidate();
+                }
+                return true; // !!!
+
+            }
+        }
+        if (objectFromCanvas instanceof MyText) {
+            MyText text = (MyText) objectFromCanvas;
+            Point beginPoint = text.getBeginPt();
+            Point endPoint = text.getEndPt();
+
+            //mDeleteRect.setBounds(mBeginPt.x - 100, mBeginPt.y - 100, mBeginPt.x, mBeginPt.y);
+            if ((mTouchedPt.x >= (beginPoint.x - 100) && mTouchedPt.y >= (beginPoint.y - 100))
+                    && (mTouchedPt.x <= beginPoint.x && mTouchedPt.y <= beginPoint.y))
+            {
+                //mObjectFromCanvas = img;
+
+                int objectNum = mCustomDrawableView.objectBuffer.size();
+                if (objectNum > 0)
+                {
+                    mFlagTouched = false;
+                    mCustomDrawableView.deleteObject(index);
+                    mTextNum--;
+                    mCustomDrawableView.invalidate();
+                }
+                return true; // !!!
+
+            }
+        }
+
+
+        return false;
+    }
+
 
     void moveObject (Point movedPt) {
         if (mObjectFromCanvas instanceof Image) {
@@ -698,7 +758,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 img.setmEndPt(new Point(endPoint.x + mDifferencePt.x, endPoint.y + mDifferencePt.y));
                 img.setImageBounds();
                 img.setmScaleRect();
-                //mObjectFromCanvas.setmDeleteRect();
+                img.setmDeleteRect();
 
                 mCustomDrawableView.invalidate();
 
@@ -711,23 +771,30 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         else if (mObjectFromCanvas instanceof MyText) {
             MyText text = (MyText) mObjectFromCanvas;
             Point beginPoint = text.getBeginPt();
+            Point endPoint = text.getEndPt();
             Point mDifferencePt = new Point((movedPt.x - mTouchedPt.x), (movedPt.y - mTouchedPt.y));
 
             int testBeginX = beginPoint.x + mDifferencePt.x;
             int testBeginY = beginPoint.y + mDifferencePt.y;
+
+            int testEndX = endPoint.x + mDifferencePt.x;
+            int testEndY = endPoint.y + mDifferencePt.y;
             float textSize = text.getPaint().getTextSize();
 
 
             // IF INSIDE CANVAS
-            if (mTouchedPt.x > (beginPoint.x - 100) && mTouchedPt.y > (beginPoint.y - 100)
-                    && mTouchedPt.x < (beginPoint.x) && mTouchedPt.y < (beginPoint.y))
+
+            if ((testBeginX  >= 0) && (testBeginY >= 0)
+                    && (testEndX < mCustomDrawableView.mCanvasWidth)
+                    && (testEndY < mCustomDrawableView.mCanvasHeight))
             {
                 text.setBeginPt(new Point(testBeginX, testBeginY));
+                text.setEndPt(new Point(endPoint.x + mDifferencePt.x, endPoint.y + mDifferencePt.y));
                 text.setMoveRect();
+                text.setDeleteRect();
 
                 Object textObject = text;
                 mCustomDrawableView.objectBuffer.set(currentIndex, textObject);
-                //mObjectFromCanvas.setmDeleteRect();
 
                 mCustomDrawableView.invalidate();
             }
@@ -738,7 +805,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
 
     }
-
 
     void scaleObject(Point movedPt) {
 
@@ -758,7 +824,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 img.setmHeight(endPoint.y - beginPoint.y);
                 img.setImageBounds();
                 img.setmScaleRect();
-                //mObjectFromCanvas.setmDeleteRect();
+                img.setmDeleteRect();
                 mCustomDrawableView.invalidate();
 
             }
@@ -787,19 +853,21 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
                     // CHECK WHICH OBJECT IS TOUCHED
                     int objectNum = mCustomDrawableView.objectBuffer.size();
-                    ArrayList<Object> mObjectBuffer = mCustomDrawableView.getObjectBuffer();
+                    ArrayList<Object> objectBuffer = mCustomDrawableView.getObjectBuffer();
 
                     for (int i = (objectNum-1); i >= 0; i--) {
 
+                        // RECT FOR DELETE IS TOUCHED
+                        if (objectDelete(objectBuffer.get(i),i)) { break; }
                         // OBJECT IS TOUCHED
-                        if (objectTouch(mObjectBuffer.get(i))) {
+                        else if (objectTouch(objectBuffer.get(i))) {
                             mFlagTouched = true;
                             setCurrentIndex(i);
                             //mCustomDrawableView.invalidate();
                             break;
                         }
                         // RECT FOR SCALE IS TOUCHED
-                        else if (objectScale(mObjectBuffer.get(i))) {
+                        else if (objectScale(objectBuffer.get(i))) {
                             mFlagScale = true;
                             setCurrentIndex(i);
                             break;
@@ -808,6 +876,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         else {
                             mFlagTouched = false;
                             mFlagScale = false;
+                            mFlagDelete = false;
                             mCustomDrawableView.invalidate();
                         }
                     }
