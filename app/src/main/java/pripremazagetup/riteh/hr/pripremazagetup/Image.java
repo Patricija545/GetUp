@@ -8,6 +8,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
+import android.util.Log;
 
 public class Image {
 
@@ -27,13 +28,20 @@ public class Image {
         mScaleRect = scaleRect;
         mDeleteRect = deleteRect;
         mImage = image;
-        mWidth = mImage.getIntrinsicWidth() + 100;
-        mHeight = mImage.getIntrinsicHeight() + 100;
+        mWidth = mImage.getIntrinsicWidth() + 200;
+        mHeight = mImage.getIntrinsicHeight() + 200;
+
         mEndPt = new Point(mWidth, mHeight);
         mImageBitmap = imageBitmap;
         setImageBounds();
         setmScaleRect();
         setmDeleteRect();
+
+
+
+        Log.d("Image", "size drawable, height: " + mHeight + ", width: " + mWidth);
+        Log.d("Image", "ratio: " + (float)mHeight/mWidth);
+
     }
 
     public void setImageBounds() {mImage.setBounds(mBeginPt.x, mBeginPt.y , mEndPt.x, mEndPt.y);}

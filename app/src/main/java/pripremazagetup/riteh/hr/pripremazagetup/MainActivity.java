@@ -1,21 +1,28 @@
 package pripremazagetup.riteh.hr.pripremazagetup;
 
+import android.Manifest;
 import android.app.Dialog;
+import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -44,11 +51,15 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Random;
 
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
@@ -119,6 +130,76 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         mBtnDeleteImage.setOnClickListener(handleClickRemoveImage);
         mBtnAddText.setOnClickListener(handleClickAddText);
 
+        Button mBtnDone = findViewById(R.id.btnDone);
+        mBtnDone.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+
+                //Bitmap img = BitmapFactory.decodeResource(getResources(), R.drawable.open_image);
+
+                Bitmap img = getBitmapFromView(mCustomDrawableView);
+
+                saveImageToExternalStorage(img);
+
+
+                // CHANGE ANDROID WALLPAPER
+                /*
+                WallpaperManager wallpaperManager = WallpaperManager.getInstance(getApplicationContext());
+                try {
+                    wallpaperManager.setBitmap(img);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }*/
+            }
+        });
+
+    }
+
+    public static Bitmap getBitmapFromView(View view) {
+        Bitmap returnedBitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(),Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(returnedBitmap);
+        Drawable bgDrawable = view.getBackground();
+        if (bgDrawable != null) {
+            bgDrawable.draw(canvas);
+        } else {
+            canvas.drawColor(Color.WHITE);
+        }
+        view.draw(canvas);
+        return returnedBitmap;
+    }
+
+    private void saveImageToExternalStorage(Bitmap finalBitmap) {
+        String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
+        File myDir = new File(root  + "/GetUp");
+        myDir.mkdirs();
+        Random generator = new Random();
+        int n = 10000;
+        n = generator.nextInt(n);
+        String fname = "Image-" + n + ".jpg";
+        File file = new File(myDir, fname);
+        if (file.exists())
+            file.delete();
+        try {
+            FileOutputStream out = new FileOutputStream(file);
+            finalBitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
+            out.flush();
+            out.close();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Tell the media scanner about the new file so that it is
+        // immediately available to the user.
+        MediaScannerConnection.scanFile(this, new String[] { file.toString() }, null,
+                new MediaScannerConnection.OnScanCompletedListener() {
+                    public void onScanCompleted(String path, Uri uri) {
+                        Log.i("ExternalStorage", "Scanned " + path + ":");
+                        Log.i("ExternalStorage", "-> uri=" + uri);
+                    }
+                });
     }
 
     @Override
@@ -402,10 +483,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     // ADD IMAGE TO CANVAS
     void add_image(Drawable img, Bitmap imgBitmap) {
-
-        Log.d(TAG, "size drawable, height: " + img.getIntrinsicHeight() + ", width: " + img.getIntrinsicWidth());
-        Log.d(TAG, "size bitmap, height: " + imgBitmap.getHeight() + ", width: " + imgBitmap.getWidth());
-
         mCustomDrawableView.setmImage(img, imgBitmap);
         Image image = (Image) mCustomDrawableView.objectBuffer.get(currentIndex);
         //image.setmWidth(500);//(img.getIntrinsicWidth());
@@ -528,11 +605,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
 
 
-            //TextView textView = activity.mAddImageDialog.findViewById(R.id.textView5);
-            //textView.setVisibility(View.GONE);
+            TextView textView = activity.mAddImageDialog.findViewById(R.id.textView5);
+            textView.setVisibility(View.GONE);
 
             ProgressBar imageSearchProgress = activity.mAddImageDialog.findViewById(R.id.progressBar2);
-            imageSearchProgress.setVisibility(View.INVISIBLE);
+            imageSearchProgress.setVisibility(View.GONE);
+
+            LinearLayout.LayoutParams param = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    0.5f
+            );
+
 
         }
     }
@@ -575,6 +659,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             {
                 Uri selectedImageUri = data.getData();
                 selectedImagePath = getImagePath(selectedImageUri);
+                Log.d("ExternalStorage", "pathh: " + selectedImagePath);
 
                 try {
                     InputStream inputStream = getContentResolver().openInputStream(selectedImageUri);
@@ -746,13 +831,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
             int testBeginX = beginPoint.x + mDifferencePt.x;
             int testBeginY = beginPoint.y + mDifferencePt.y;
+
+            int testEndX = endPoint.x + mDifferencePt.x;
+            int testEndY = endPoint.y + mDifferencePt.y;
+
+
             int imageWidth = img.getmWidth();
             int imageHeight = img.getmHeight();
 
             // IF INSIDE CANVAS
             if ((testBeginX  >= 0) && (testBeginY >= 0)
-                    && ((testBeginX + imageWidth) < mCustomDrawableView.mCanvasWidth)
-                    && ((testBeginY + imageHeight) < mCustomDrawableView.mCanvasHeight)) {
+                    && (testEndX < mCustomDrawableView.mCanvasWidth)
+                    && (testEndY < mCustomDrawableView.mCanvasHeight)) {
 
                 img.setmBeginPt(new Point(testBeginX, testBeginY));
                 img.setmEndPt(new Point(endPoint.x + mDifferencePt.x, endPoint.y + mDifferencePt.y));
@@ -826,11 +916,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 img.setmScaleRect();
                 img.setmDeleteRect();
                 mCustomDrawableView.invalidate();
-
             }
-
         }
-
     }
 
     int getCurrentIndex() {

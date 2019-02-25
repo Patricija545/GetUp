@@ -15,17 +15,17 @@ android:gravity="center">
         android:text="Choose image from:"
         android:textSize="20dp" />
 
-<Button
-    android:id="@+id/imageFromGallery"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:text="Add image from gallery" />
+    <Button
+        android:id="@+id/imageFromGallery"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Gallery" />
 
     <Button
         android:id="@+id/imageFromGoogle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="add image from google" />
+        android:text="Internet" />
 
     <TextView
         android:id="@+id/textView8"
