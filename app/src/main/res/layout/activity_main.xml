@@ -6,70 +6,56 @@
     android:layout_height="match_parent"
     tools:context=".ImageSearch">
 
-    <LinearLayout
-        android:id="@+id/llayout0"
+    <RelativeLayout
+        android:id="@+id/drawLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:weightSum="1">
+        android:layout_height="match_parent">
 
-        <LinearLayout
-            android:id="@+id/outerLayout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="0.1"
-            android:orientation="vertical"
-            android:weightSum="1">
+        <com.getbase.floatingactionbutton.FloatingActionsMenu
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            app:fab_addButtonColorNormal="@color/pink"
+            app:fab_addButtonColorPressed="@color/red"
+            app:fab_addButtonPlusIconColor="@color/white"
+            app:fab_labelStyle="@style/customFab">
 
-
-            <LinearLayout
-                android:id="@+id/drawLayout"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="0.8"
-                android:orientation="vertical"></LinearLayout>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:layout_weight="0.9"
-            android:weightSum="1">
-
-            <Button
-                android:id="@+id/btnAdd"
+            <com.getbase.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fab_add_image"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Add image"
-                android:layout_weight="0.33"/>
+                app:fab_colorNormal="@color/white"
+                app:fab_colorPressed="@color/pink"
+                app:fab_icon="@drawable/ic_add_black_24dp"
+                app:fab_size="mini"
+                app:fab_title="Add image" />
 
-            <Button
-                android:id="@+id/btnDelete"
+            <com.getbase.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fab_add_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.33"
-                android:text="Delete image" />
+                app:fab_colorNormal="@color/white"
+                app:fab_colorPressed="@color/pink"
+                app:fab_icon="@drawable/ic_add_black_24dp"
+                app:fab_size="mini"
+                app:fab_title="Add text" />
 
-            <Button
-                android:id="@+id/btnText"
+            <com.getbase.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fab_save"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.33"
-                android:text="Add text" />
+                app:fab_colorNormal="@color/white"
+                app:fab_colorPressed="@color/pink"
+                app:fab_icon="@drawable/ic_add_black_24dp"
+                app:fab_size="mini"
+                app:fab_title="Save" />
 
 
-            <Button
-                android:id="@+id/btnDone"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.25"
-                android:text="done" />
+
+        </com.getbase.floatingactionbutton.FloatingActionsMenu>
 
 
-        </LinearLayout>
-
-    </LinearLayout>
+    </RelativeLayout>
 
 </android.support.constraint.ConstraintLayout>

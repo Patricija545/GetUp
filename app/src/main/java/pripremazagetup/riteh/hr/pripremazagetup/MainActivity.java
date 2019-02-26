@@ -39,11 +39,13 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.squareup.picasso.Picasso;
 
 import org.jsoup.Jsoup;
@@ -106,17 +108,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         imagesFromGoogle = new ArrayList<>();
 
         // INITIALIZE VIEWS
-        LinearLayout mLinearLayout = findViewById(R.id.drawLayout);
-        Button mBtnAddImage = findViewById(R.id.btnAdd);
-        Button mBtnDeleteImage = findViewById(R.id.btnDelete);
-        Button mBtnAddText = findViewById(R.id.btnText);
+        RelativeLayout mLinearLayout = findViewById(R.id.drawLayout);
+        FloatingActionButton fabAddImage = findViewById(R.id.fab_add_image);
+        FloatingActionButton fabAddText = findViewById(R.id.fab_add_text);
+        FloatingActionButton fabSave = findViewById(R.id.fab_save);
         mAddImageDialog = new Dialog(this,android.R.style.Theme_Light_NoTitleBar);//ThemeOverlay_Material_Dark); //Theme_Black_NoTitleBar_Fullscreen);
         mAddTextDialog = new Dialog(this,android.R.style.Theme_Light_NoTitleBar);
         mAddImageGoogleDialog = new Dialog(this);
-
         mAddTextDialog.setContentView(R.layout.dialog_add_text);
         mCustomDrawableView = new CustomDrawableView(this);
-        //mTextCanvas = findViewById(R.id.tvTextCanvas);
         spinnerFontFamily = mAddTextDialog.findViewById(R.id.spinnerFontFamily);
         spinnerFontFamily.setOnItemSelectedListener(this);
 
@@ -126,27 +126,23 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         // LISTENERS
         mLinearLayout.setOnTouchListener(handleTouchCanvas);
-        mBtnAddImage.setOnClickListener(handleClickAddImage);
-        mBtnDeleteImage.setOnClickListener(handleClickRemoveImage);
-        mBtnAddText.setOnClickListener(handleClickAddText);
+        fabAddImage.setOnClickListener(handleClickAddImage);
+        fabAddText.setOnClickListener(handleClickAddText);
 
-        Button mBtnDone = findViewById(R.id.btnDone);
-        mBtnDone.setOnClickListener(new View.OnClickListener() {
+
+        fabSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
                 ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
-
-                //Bitmap img = BitmapFactory.decodeResource(getResources(), R.drawable.open_image);
-
                 Bitmap img = getBitmapFromView(mCustomDrawableView);
 
                 saveImageToExternalStorage(img);
+                showToast("Image saved in the gallery.");
 
 
                 // CHANGE ANDROID WALLPAPER
-                /*
-                WallpaperManager wallpaperManager = WallpaperManager.getInstance(getApplicationContext());
+/*               WallpaperManager wallpaperManager = WallpaperManager.getInstance(getApplicationContext());
                 try {
                     wallpaperManager.setBitmap(img);
                 } catch (IOException e) {
