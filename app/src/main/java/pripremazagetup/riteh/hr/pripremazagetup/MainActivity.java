@@ -22,6 +22,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -108,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         imagesFromGoogle = new ArrayList<>();
 
         // INITIALIZE VIEWS
-        RelativeLayout mLinearLayout = findViewById(R.id.drawLayout);
+        ConstraintLayout mLinearLayout = findViewById(R.id.drawLayout);
         FloatingActionButton fabAddImage = findViewById(R.id.fab_add_image);
         FloatingActionButton fabAddText = findViewById(R.id.fab_add_text);
         FloatingActionButton fabSave = findViewById(R.id.fab_save);

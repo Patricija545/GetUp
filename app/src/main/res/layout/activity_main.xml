@@ -1,61 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ImageSearch">
 
-    <RelativeLayout
+
+    <android.support.constraint.ConstraintLayout
         android:id="@+id/drawLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <com.getbase.floatingactionbutton.FloatingActionsMenu
+
+    </android.support.constraint.ConstraintLayout>
+
+    <com.getbase.floatingactionbutton.FloatingActionsMenu
+        android:layout_width="375dp"
+        android:layout_height="466dp"
+        app:fab_addButtonColorNormal="@color/pink"
+        app:fab_addButtonColorPressed="@color/red"
+        app:fab_addButtonPlusIconColor="@color/white"
+        app:fab_labelStyle="@style/customFab"
+        android:layout_gravity="right|bottom"
+        android:layout_marginBottom="0dp">
+
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_add_image"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true"
-            app:fab_addButtonColorNormal="@color/pink"
-            app:fab_addButtonColorPressed="@color/red"
-            app:fab_addButtonPlusIconColor="@color/white"
-            app:fab_labelStyle="@style/customFab">
+            app:fab_colorNormal="@color/white"
+            app:fab_colorPressed="@color/pink"
+            app:fab_icon="@drawable/ic_add_black_24dp"
+            app:fab_size="mini"
+            app:fab_title="Add image" />
 
-            <com.getbase.floatingactionbutton.FloatingActionButton
-                android:id="@+id/fab_add_image"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:fab_colorNormal="@color/white"
-                app:fab_colorPressed="@color/pink"
-                app:fab_icon="@drawable/ic_add_black_24dp"
-                app:fab_size="mini"
-                app:fab_title="Add image" />
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_add_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:fab_colorNormal="@color/white"
+            app:fab_colorPressed="@color/pink"
+            app:fab_icon="@drawable/ic_add_black_24dp"
+            app:fab_size="mini"
+            app:fab_title="Add text" />
 
-            <com.getbase.floatingactionbutton.FloatingActionButton
-                android:id="@+id/fab_add_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:fab_colorNormal="@color/white"
-                app:fab_colorPressed="@color/pink"
-                app:fab_icon="@drawable/ic_add_black_24dp"
-                app:fab_size="mini"
-                app:fab_title="Add text" />
-
-            <com.getbase.floatingactionbutton.FloatingActionButton
-                android:id="@+id/fab_save"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:fab_colorNormal="@color/white"
-                app:fab_colorPressed="@color/pink"
-                app:fab_icon="@drawable/ic_add_black_24dp"
-                app:fab_size="mini"
-                app:fab_title="Save" />
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_save"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:fab_colorNormal="@color/white"
+            app:fab_colorPressed="@color/pink"
+            app:fab_icon="@drawable/ic_add_black_24dp"
+            app:fab_size="mini"
+            app:fab_title="Save" />
 
 
+    </com.getbase.floatingactionbutton.FloatingActionsMenu>
 
-        </com.getbase.floatingactionbutton.FloatingActionsMenu>
 
-
-    </RelativeLayout>
-
-</android.support.constraint.ConstraintLayout>
+</FrameLayout>
