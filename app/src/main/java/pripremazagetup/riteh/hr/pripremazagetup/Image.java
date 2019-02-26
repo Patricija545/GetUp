@@ -28,20 +28,31 @@ public class Image {
         mScaleRect = scaleRect;
         mDeleteRect = deleteRect;
         mImage = image;
-        mWidth = mImage.getIntrinsicWidth() + 200;
-        mHeight = mImage.getIntrinsicHeight() + 200;
-
+        int width = mImage.getIntrinsicWidth();
+        int height = mImage.getIntrinsicHeight();
+        scaleWithRatio(width, height);
         mEndPt = new Point(mWidth, mHeight);
         mImageBitmap = imageBitmap;
         setImageBounds();
         setmScaleRect();
         setmDeleteRect();
+    }
 
-
-
-        Log.d("Image", "size drawable, height: " + mHeight + ", width: " + mWidth);
-        Log.d("Image", "ratio: " + (float)mHeight/mWidth);
-
+    void scaleWithRatio(int width, int height) {
+        if (height < width) {
+            float ratio = (float)height/width;
+            int newWidth = 600;
+            int newHeight = (int)(ratio * (float)newWidth);
+            mWidth = newWidth;
+            mHeight = newHeight;
+        }
+        else {
+            float ratio = (float)width/height;
+            int newHeight = 600;
+            int newWidth = (int)(ratio * (float)newHeight);
+            mWidth = newWidth;
+            mHeight = newHeight;
+        }
     }
 
     public void setImageBounds() {mImage.setBounds(mBeginPt.x, mBeginPt.y , mEndPt.x, mEndPt.y);}
