@@ -68,9 +68,9 @@ public class CustomDrawableView extends View {
     }
 
     void setText (String text, int color, int size, String fontFamily, Point beginPoint) {
-        Drawable moveRect = getResources().getDrawable(R.drawable.move);
+        Drawable editRect = getResources().getDrawable(R.drawable.edit);
         Drawable deleteRect = getResources().getDrawable(R.drawable.delete);
-        MyText myText = new MyText(text, color, size, fontFamily, beginPoint, moveRect, deleteRect);
+        MyText myText = new MyText(text, color, size, fontFamily, beginPoint, editRect, deleteRect);
         objectBuffer.add(myText);
     }
 

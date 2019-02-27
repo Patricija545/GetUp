@@ -53,6 +53,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -91,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private int mFontSize = 18;
     private int mImgNum = 0;
     private int mTextNum = 0;
-    private int mFontColorID = R.color.white;
+    private int mFontColorID = R.color.black;
     private int colors[] = {R.color.white, R.color.red, R.color.orange, R.color.yellow, R.color.green, R.color.turquoise, R.color.lightBlue, R.color.darkBlue, R.color.purple, R.color.pink};
     static private int imagesFromGoogleNum = 16;
 
@@ -199,6 +200,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 });
     }
 
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -231,131 +233,164 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private final View.OnClickListener handleClickAddText = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
+            add_text_dialog(null);
+        }
+    };
 
-            // SHOW DIALOG FOR ADDING TEXT
-            mAddTextDialog.show();
 
-            // INITIALIZE VIEWS
-            mTextPreview = mAddTextDialog.findViewById(R.id.previewText);
+    void add_text_dialog(MyText textChange) {
+        // SHOW DIALOG FOR ADDING TEXT
+        mAddTextDialog.show();
 
-            // SHOW COLORS ON LINEAR LAYOUT
-            LinearLayout layoutColors = mAddTextDialog.findViewById(R.id.llayoutcolor);
+        // INITIALIZE VIEWS
+        mTextPreview = mAddTextDialog.findViewById(R.id.previewText);
+        LinearLayout layoutColors = mAddTextDialog.findViewById(R.id.llayoutcolor);
+        SeekBar seekBarFontSize = mAddTextDialog.findViewById(R.id.seekbar_font_size);
+        EditText  mText = mAddTextDialog.findViewById(R.id.textCanvas);
+        Button btnAddTextToCanvas = mAddTextDialog.findViewById(R.id.btnAddText2);
 
-            // ADD BUTTONS FOR COLOR PICKING ON FIRST OPENING
-            if (mFlagDialogFirstOpen) {
-                mTextPreview.setTextColor(getResources().getColor(R.color.white));
+        if (textChange != null) {
+            mText.setText(textChange.getText());
+            int size = (int)(textChange.getPaint().getTextSize() - 38);
+            seekBarFontSize.setProgress(size);
 
-                // CREATE ARRAY OF BUTTONS FOR DISPLAYING COLOR
-                Button colorButton[] = new Button[colors.length];
+            mTextPreview.setTextColor(textChange.getPaint().getColor());
+            mTextPreview.setText(textChange.getText());
+            mTextPreview.setTextSize(textChange.getPaint().getTextSize() - 30);
 
-                // CREATE BUTTON AND GIVE IT PARAMS AND BACKGROUND
-                for (int i = 0; i < colors.length; i++) {
-                    colorButton[i] = new Button(getApplicationContext());
-                    Resources res = getApplication().getResources();
-                    Drawable roundButton = ResourcesCompat.getDrawable(res, R.drawable.roundbutton, null);
-                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(100, 100, (float)0.1);
-                    params.setMargins(5,5,5,5);
-                    colorButton[i].setLayoutParams(params);
-                    colorButton[i].setBackground(roundButton);
-                    colorButton[i].setId(i);
-                }
+            mFontFamilyName = textChange.getFontFamily();
+            if (mFontFamilyName.equals("sans-serif")) spinnerFontFamily.setSelection(0);
+            else if (mFontFamilyName.equals("serif")) spinnerFontFamily.setSelection(1);
+            else if (mFontFamilyName.equals("monospace")) spinnerFontFamily.setSelection(2);
+        }
+        else {
+            // SET
+            mText.setText("");
+            seekBarFontSize.setProgress(8);
+            spinnerFontFamily.setSelection(0);
+            mFontFamilyName = "sans-serif";
+            mTextPreview.setTextColor(getResources().getColor(R.color.black));
+        }
 
-                // SET PROPER COLOR OF BUTTON
-                for (int i = 0; i < colors.length; i++) {
-                    colorButton[i].getBackground().setColorFilter(getResources().getColor(colors[i]), PorterDuff.Mode.SRC_OVER);
-                }
+        // ADD BUTTONS FOR COLOR PICKING ON FIRST OPENING
+        if (mFlagDialogFirstOpen) {
+            // CREATE ARRAY OF BUTTONS FOR DISPLAYING COLOR
+            Button colorButton[] = new Button[colors.length];
 
-                // ADD BUTTON TO VIEW
-                for (int i = 0; i < colors.length; i++) {
-                    layoutColors.addView(colorButton[i]);
-                }
-
-                // COLOR PICKER LISTENER
-                for (int i = 0; i < colors.length; i++) {
-                    colorButton[i].setOnClickListener(handleClickChooseColor);
-                }
-
-                mFlagDialogFirstOpen = false;
+            // CREATE BUTTON AND GIVE IT PARAMS AND BACKGROUND
+            for (int i = 0; i < colors.length; i++) {
+                colorButton[i] = new Button(getApplicationContext());
+                Resources res = getApplication().getResources();
+                Drawable roundButton = ResourcesCompat.getDrawable(res, R.drawable.roundbutton, null);
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(100, 100, (float)0.1);
+                params.setMargins(5,5,5,5);
+                colorButton[i].setLayoutParams(params);
+                colorButton[i].setBackground(roundButton);
+                colorButton[i].setId(i);
             }
 
+            // SET PROPER COLOR OF BUTTON
+            for (int i = 0; i < colors.length; i++) {
+                colorButton[i].getBackground().setColorFilter(getResources().getColor(colors[i]), PorterDuff.Mode.SRC_OVER);
+            }
 
-            // GET TEXT SIZE
-            SeekBar seekBarFontSize = mAddTextDialog.findViewById(R.id.seekbar_font_size);
-            seekBarFontSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                    // MINIMUM FONT SIZE IZ 14 (MINIMUM OF SEEKBAR IS 0)
-                    mFontSize = i + 8;
-                    mTextPreview.setTextSize(mFontSize);
+            // ADD BUTTON TO VIEW
+            for (int i = 0; i < colors.length; i++) {
+                layoutColors.addView(colorButton[i]);
+            }
+
+            // COLOR PICKER LISTENER
+            for (int i = 0; i < colors.length; i++) {
+                colorButton[i].setOnClickListener(handleClickChooseColor);
+            }
+
+            mFlagDialogFirstOpen = false;
+        }
+
+
+        // GET TEXT SIZE
+        seekBarFontSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                // MINIMUM FONT SIZE IZ 14 (MINIMUM OF SEEKBAR IS 0)
+                mFontSize = i + 8;
+                mTextPreview.setTextSize(mFontSize);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) { }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) { }
+        });
+
+
+        // LISTENER FOR INPUT TEXT TO WRITE MOTIVATIONAL WORDS TO YOURSELF
+        mText.addTextChangedListener(new TextWatcher() {
+            String beforeChanged;
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                beforeChanged = charSequence.toString();
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                // GET TEXT WHICH WILL BE PUT ON CANVAS AND SHOW IT IN PREVIEW SECTION
+                String textString = charSequence.toString();
+
+                int lines = 0;
+                for (int z = 0; z < textString.length(); z++) {
+                    char c = textString.charAt(z);
+                    if (c == '\n') {
+                        lines++;
+                    }
                 }
 
-                @Override
-                public void onStartTrackingTouch(SeekBar seekBar) { }
-
-                @Override
-                public void onStopTrackingTouch(SeekBar seekBar) { }
-            });
-
-
-            // LISTENER FOR INPUT TEXT TO WRITE MOTIVATIONAL WORDS TO YOURSELF
-           EditText  mText = mAddTextDialog.findViewById(R.id.textCanvas);
-            mText.addTextChangedListener(new TextWatcher() {
-                String beforeChanged;
-                @Override
-                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                    beforeChanged = charSequence.toString();
+                if (lines >= 4){
+                    mText.setText(beforeChanged);
+                    mText.setSelection(beforeChanged.length()-1);
+                    showToast("Maximum number of lines is 4. You can split your text in more parts by adding another text for second part. :)");
+                }
+                else if (textString.length() == 95) {
+                    showToast("Maximum number of characters is 100. You have 5 characters left.");
+                }
+                else if (textString.length() == 100) {
+                    showToast("Maximum number of characters is 100. You can split your text in more parts by adding another text for second part. :)");
+                }
+                else {
+                    mTextPreview.setText(textString);
                 }
 
-                @Override
-                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                    // GET TEXT WHICH WILL BE PUT ON CANVAS AND SHOW IT IN PREVIEW SECTION
-                    String textString = charSequence.toString();
+            }
 
-                    int lines = 0;
-                    for (int z = 0; z < textString.length(); z++) {
-                        char c = textString.charAt(z);
-                        if (c == '\n') {
-                            lines++;
-                        }
-                    }
+            @Override
+            public void afterTextChanged(Editable editable) { }
+        });
 
-                    if (lines >= 4){
-                        mText.setText(beforeChanged);
-                        mText.setSelection(beforeChanged.length()-1);
-                        showToast("Maximum number of lines is 4. You can split your text in more parts by adding another text for second part. :)");
-                    }
-                    else if (textString.length() == 95) {
-                        showToast("Maximum number of characters is 100. You have 5 characters left.");
-                    }
-                    else if (textString.length() == 100) {
-                        showToast("Maximum number of characters is 100. You can split your text in more parts by adding another text for second part. :)");
-                    }
-                    else {
-                        mTextPreview.setText(textString);
-                    }
+        // DONE WITH DIALOG FOR TEXT ADD
+        btnAddTextToCanvas.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String text = mTextPreview.getText().toString();
+                int color = getResources().getColor(mFontColorID);
+
+                if (textChange != null) {
+                    /*
+                    textChange.setPaint(text, color, (mFontSize + 30), mFontFamilyName);
+                    textChange.setMoveRect();
+                    textChange.setDeleteRect();
+                    mCustomDrawableView.invalidate();*/
+                    mCustomDrawableView.deleteObject(currentIndex);
+                    add_text(text, color, (mFontSize + 30), mFontFamilyName, new Point(textChange.getBeginPt().x, textChange.getBeginPt().y));
+
+
+                    //mCustomDrawableView.setText(text, color, fontSize, fontFamily, beginPt);
+                    //void setPaint(String text, int size, int color, String fontFamily) {
+                    //add_text(text, color, (mFontSize + 30), mFontFamilyName, new Point(100, 100));
 
                 }
-
-                @Override
-                public void afterTextChanged(Editable editable) { }
-            });
-
-
-
-
-
-            // DONE WITH DIALOG FOR TEXT ADD
-            Button btnAddTextToCanvas = mAddTextDialog.findViewById(R.id.btnAddText2);
-            btnAddTextToCanvas.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    String text = mTextPreview.getText().toString();
-                    Paint p = new Paint();
-                    float vel = p.measureText(text);
-                    int color = getResources().getColor(mFontColorID);
-
-                    if (mTextNum < maxTextNum) {
-                        add_text(text, color, (mFontSize + 30), mFontFamilyName, new Point(100, 100));
+                else if (mTextNum < maxTextNum) {
+                    add_text(text, color, (mFontSize + 30), mFontFamilyName, new Point(100, 100));
 
                     /*
                     // SET ALL SELECTED TO TEXT ON CANVAS
@@ -365,26 +400,29 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     mTextCanvas.setTextColor(getResources().getColor(mFontColorID));
                     mTextCanvas.setVisibility(View.VISIBLE);
                     */
-                    }
-                    else {
-                        showToast("Maximum number of texts is " + maxImageNum);
-                    }
-
-                    // CLOSE DIALOG
-                    mAddTextDialog.dismiss();
-
-                    // SET
-                    mText.setText("");
-                    spinnerFontFamily.setSelection(0);
-                    mFontFamilyName = "sans-serif";
-                    seekBarFontSize.setProgress(18);
-                    mTextPreview.setTextColor(getResources().getColor(R.color.white));
-
                 }
-            });
+                else {
+                    showToast("Maximum number of texts is " + maxImageNum);
+                }
 
+                // CLOSE DIALOG
+                mAddTextDialog.dismiss();
+
+            }
+        });
+    }
+
+    void textEdit (MyText text) {
+        Point endPoint = text.getEndPt();
+
+        if ((mTouchedPt.x > endPoint.x && mTouchedPt.y > endPoint.y)
+                && (mTouchedPt.x < (endPoint.x  + 100) && mTouchedPt.y < (endPoint.y + 100)))
+        {
+            mObjectFromCanvas = text;
+            add_text_dialog(text);
         }
-    };
+    }
+
 
     // SPINNER (SELECT FONT FAMILY) LISTENER
     @Override
@@ -414,6 +452,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public void onNothingSelected(AdapterView<?> adapterView) { }
 
 
+    // BUTTON LISTENER FOR COLOR PICKING
     private final View.OnClickListener handleClickChooseColor = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
@@ -432,12 +471,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     // ADD TEXT TO CANVAS
     void add_text(String text, int color, int fontSize, String fontFamily, Point beginPt) {
-        Log.d(TAG, "size of text: " + text.length());
         mCustomDrawableView.setText(text, color, fontSize, fontFamily, beginPt);
         mTextNum++;
         mCustomDrawableView.invalidate();
         mAddImageDialog.dismiss();
-        //mImagesBitmap.add(imgBitmap);
     }
 
     private View.OnClickListener handleClickAddImage = new View.OnClickListener() {
@@ -714,6 +751,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     };
 
+
     boolean objectTouch(Object objectFromCanvas) {
 
         if (objectFromCanvas instanceof Image) {
@@ -745,7 +783,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         return false;
     }
-
 
     boolean objectScale(Object objectFromCanvas) {
 
@@ -833,13 +870,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             int testEndY = endPoint.y + mDifferencePt.y;
 
 
-            int imageWidth = img.getmWidth();
-            int imageHeight = img.getmHeight();
-
             // IF INSIDE CANVAS
-            if ((testBeginX  >= 0) && (testBeginY >= 0)
-                    && (testEndX < mCustomDrawableView.mCanvasWidth)
-                    && (testEndY < mCustomDrawableView.mCanvasHeight)) {
+            if ((testBeginX  >= -10) && (testBeginY >= -10)
+                    && (testEndX < (mCustomDrawableView.mCanvasWidth + 10))
+                    && (testEndY < (mCustomDrawableView.mCanvasHeight + 10))) {
 
                 img.setmBeginPt(new Point(testBeginX, testBeginY));
                 img.setmEndPt(new Point(endPoint.x + mDifferencePt.x, endPoint.y + mDifferencePt.y));
@@ -877,7 +911,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             {
                 text.setBeginPt(new Point(testBeginX, testBeginY));
                 text.setEndPt(new Point(endPoint.x + mDifferencePt.x, endPoint.y + mDifferencePt.y));
-                text.setMoveRect();
+                text.setEditRect();
                 text.setDeleteRect();
 
                 Object textObject = text;
@@ -940,18 +974,23 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     ArrayList<Object> objectBuffer = mCustomDrawableView.getObjectBuffer();
 
                     for (int i = (objectNum-1); i >= 0; i--) {
+                        Object objectFromCanvas = objectBuffer.get(i);
+
+                        if (objectFromCanvas instanceof MyText) {
+                            textEdit((MyText)objectFromCanvas);
+                        }
 
                         // RECT FOR DELETE IS TOUCHED
-                        if (objectDelete(objectBuffer.get(i),i)) { break; }
+                        if (objectDelete(objectFromCanvas,i)) { break; }
                         // OBJECT IS TOUCHED
-                        else if (objectTouch(objectBuffer.get(i))) {
+                        else if (objectTouch(objectFromCanvas)) {
                             mFlagTouched = true;
                             setCurrentIndex(i);
                             //mCustomDrawableView.invalidate();
                             break;
                         }
                         // RECT FOR SCALE IS TOUCHED
-                        else if (objectScale(objectBuffer.get(i))) {
+                        else if (objectScale(objectFromCanvas)) {
                             mFlagScale = true;
                             setCurrentIndex(i);
                             break;

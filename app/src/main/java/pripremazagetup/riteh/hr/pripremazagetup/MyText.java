@@ -4,25 +4,24 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
-
-import java.time.chrono.MinguoEra;
 
 public class MyText {
     private String mText;
+    private String mFontFamily;
     private Paint mPaint = new Paint();
     private Point mBeginPt;
     private Point mEndPt = new Point(0,0);
     private Drawable mMoveRect;
     private Drawable mDeleteRect;
 
-    public MyText(String text, int color, int size, String fontFamily, Point beginPoint, Drawable moveRect, Drawable deleteRect) {
+    public MyText(String text, int color, int size, String fontFamily, Point beginPoint, Drawable editRect, Drawable deleteRect) {
         mText = text;
+        mFontFamily = fontFamily;
         mBeginPt = beginPoint;
         setPaint(text, size, color, fontFamily);
-        mMoveRect = moveRect;
+        mMoveRect = editRect;
         mDeleteRect = deleteRect;
-        setMoveRect();
+        setEditRect();
         setDeleteRect();
     }
 
@@ -45,23 +44,13 @@ public class MyText {
         mEndPt.y = mBeginPt.y + size * (lines.length-1);
     }
 
-    public void setMoveRect() {
+    public void setEditRect() {
         mMoveRect.setBounds(mEndPt.x, mEndPt.y, mEndPt.x + 100, mEndPt.y + 100);
     }
 
-
     public void setDeleteRect() {
-        // donji desni kut
         mDeleteRect.setBounds(mBeginPt.x - 100, mBeginPt.y - 100, mBeginPt.x, mBeginPt.y);
-        //mDeleteRect.setBounds(mEndPt.x, mBeginPt.y, mEndPt.x + 100, mBeginPt.y + 100);
     }
-
-/*
-    public void setDeleteRect() {
-        mDeleteRect.setBounds(mEndPt.x - 100, mBeginPt.y - 100, mEndPt.x, mBeginPt.y);
-        Log.d("MyText begin", "x: " + (mBeginPt.x-100) +", : " + mBeginPt.y);
-        Log.d("MyText end", "x: " + (mEndPt.x-100) +", : " + mEndPt.y);
-    }*/
 
     void setBeginPt(Point point) {
         mBeginPt = point;
@@ -91,6 +80,6 @@ public class MyText {
         return mEndPt;
     }
 
-
+    String getFontFamily() { return mFontFamily;}
 
 }
