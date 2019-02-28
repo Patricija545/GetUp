@@ -425,7 +425,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     // EDIT TEXT WHICH IS ALREADY ON CANVAS
-    void textEdit (MyText text, int index) {
+    boolean textEdit (MyText text, int index) {
         Point endPoint = text.getEndPt();
 
         if ((mTouchedPt.x > endPoint.x && mTouchedPt.y > endPoint.y)
@@ -434,7 +434,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             mObjectFromCanvas = text;
             add_text_dialog(text);
             currentIndex = index;
+            return true;
         }
+
+        return false;
     }
 
 
@@ -899,12 +902,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     for (int i = (objectNum-1); i >= 0; i--) {
                         Object objectFromCanvas = objectBuffer.get(i);
 
-                        if (objectFromCanvas instanceof MyText) {
-                            textEdit((MyText)objectFromCanvas, i);
+                        // RECT FOR EDIT TEXT IS TOUCHED
+                        if ((objectFromCanvas instanceof MyText) && (textEdit((MyText)objectFromCanvas, i))) {
+                            currentIndex = i;
+                            break;
                         }
-
                         // RECT FOR DELETE IS TOUCHED
-                        if (objectDelete(objectFromCanvas,i)) { break; }
+                        else if (objectDelete(objectFromCanvas,i)) { break; }
                         // OBJECT IS TOUCHED
                         else if (objectTouch(objectFromCanvas)) {
                             mFlagTouched = true;
