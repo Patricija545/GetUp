@@ -21,8 +21,7 @@ public class Image {
     int mHeight;
 
     Point mBeginPt = new Point(100,100);
-    Point mEndPt; // = new Point(mWidth, mHeight);
-    Point mCenterPt = new Point(mBeginPt.x + mWidth/2,mBeginPt.y + mHeight/2);
+    Point mEndPt;
 
     public Image (Drawable image, Bitmap imageBitmap, Drawable scaleRect, Drawable deleteRect) {
         mScaleRect = scaleRect;
@@ -57,30 +56,16 @@ public class Image {
 
     public void setImageBounds() {mImage.setBounds(mBeginPt.x, mBeginPt.y , mEndPt.x, mEndPt.y);}
 
-
     public void setmScaleRect() {
         mScaleRect.setBounds(mEndPt.x - 50, mEndPt.y - 50, mEndPt.x + 50, mEndPt.y + 50);
     }
-
 
     public void setmDeleteRect() {
         mDeleteRect.setBounds(mEndPt.x - 50, mBeginPt.y - 50, mEndPt.x + 50, mBeginPt.y + 50);
     }
 
-    public Bitmap getBitmap () {
-        return mImageBitmap;
-    }
-
-    public int getmWidth() {
-        return mWidth;
-    }
-
     public void setmWidth(int mWidth) {
         this.mWidth = mWidth;
-    }
-
-    public int getmHeight() {
-        return mHeight;
     }
 
     public void setmHeight(int mHeight) {
@@ -101,10 +86,6 @@ public class Image {
 
     public void setmEndPt(Point mEndPt) {
         this.mEndPt = mEndPt;
-    }
-
-    public Point getmCenterPt() {
-        return mCenterPt;
     }
 
 }

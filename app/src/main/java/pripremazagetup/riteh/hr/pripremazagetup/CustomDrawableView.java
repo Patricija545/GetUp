@@ -18,7 +18,6 @@ public class CustomDrawableView extends View {
     public CustomDrawableView(Context context) {super(context); }
 
     protected void onDraw(Canvas canvas) {
-        //canvas.drawColor(Color.WHITE);
         mCanvasHeight = getHeight();
         mCanvasWidth = getWidth();
 
@@ -64,7 +63,6 @@ public class CustomDrawableView extends View {
         Drawable deleteRect = getResources().getDrawable(R.drawable.delete);
         Image img = new Image(image, imageBitmap, scaleRect, deleteRect);
         objectBuffer.add(img);
-
     }
 
     void setText (String text, int color, int size, String fontFamily, Point beginPoint) {

@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private int colors[] = {R.color.black, R.color.white, R.color.red, R.color.orange, R.color.yellow, R.color.green, R.color.lightBlue, R.color.darkBlue, R.color.purple, R.color.pink};
 
-    private ArrayList<Bitmap> mImagesBitmap = new ArrayList<>();
+    //private ArrayList<Bitmap> mImagesBitmap = new ArrayList<>();
     private static ArrayList<String> imagesFromGoogle = new ArrayList<>();
 
     private ProgressBar imageSearchProgress;
@@ -358,6 +358,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     add_text(true, text, color, (mFontSize + 30), mFontFamilyName, textChange.getBeginPt());
                     mCustomDrawableView.deleteObject(currentIndex);
                     mCustomDrawableView.invalidate();
+                    mObjectFromCanvas = mCustomDrawableView.getObjectBuffer().get(currentIndex);
                 }
                 else {
                     add_text(false, text, color, (mFontSize + 30), mFontFamilyName, new Point(100, 100));
@@ -477,7 +478,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         mImgNum ++;
         mCustomDrawableView.invalidate();
         mAddImageDialog.dismiss();
-        mImagesBitmap.add(imgBitmap);
+        //mImagesBitmap.add(imgBitmap);
 
         if (mImgNum == 1) {
             showToast("Well done. Nice start with defining your goals :)");
@@ -721,7 +722,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 {
                     mFlagTouched = false;
                     mCustomDrawableView.deleteObject(index);
-                    mImagesBitmap.remove(index);
+//                    mImagesBitmap.remove(index);
                     mImgNum--;
                     mCustomDrawableView.invalidate();
                 }
