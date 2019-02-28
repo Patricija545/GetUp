@@ -15,11 +15,12 @@
 
     </android.support.constraint.ConstraintLayout>
 
+
     <com.getbase.floatingactionbutton.FloatingActionsMenu
         android:layout_width="375dp"
         android:layout_height="466dp"
         app:fab_addButtonColorNormal="@color/pink"
-        app:fab_addButtonColorPressed="@color/red"
+        app:fab_addButtonColorPressed="@color/darkPink"
         app:fab_addButtonPlusIconColor="@color/white"
         app:fab_labelStyle="@style/customFab"
         android:layout_gravity="right|bottom"
@@ -31,9 +32,9 @@
             android:layout_height="wrap_content"
             app:fab_colorNormal="@color/white"
             app:fab_colorPressed="@color/pink"
-            app:fab_icon="@drawable/ic_add_black_24dp"
+            app:fab_icon="@drawable/ic_filter_hdr_black_24dp"
             app:fab_size="mini"
-            app:fab_title="Add image" />
+            app:fab_title="Image" />
 
         <com.getbase.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_add_text"
@@ -41,9 +42,9 @@
             android:layout_height="wrap_content"
             app:fab_colorNormal="@color/white"
             app:fab_colorPressed="@color/pink"
-            app:fab_icon="@drawable/ic_add_black_24dp"
+            app:fab_icon="@drawable/ic_text_format_black_24dp"
             app:fab_size="mini"
-            app:fab_title="Add text" />
+            app:fab_title="Text" />
 
         <com.getbase.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_save"
@@ -51,12 +52,23 @@
             android:layout_height="wrap_content"
             app:fab_colorNormal="@color/white"
             app:fab_colorPressed="@color/pink"
-            app:fab_icon="@drawable/ic_add_black_24dp"
+            app:fab_icon="@drawable/ic_beenhere_black_24dp"
             app:fab_size="mini"
             app:fab_title="Save" />
 
 
     </com.getbase.floatingactionbutton.FloatingActionsMenu>
+
+    <com.getbase.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_help"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right|top"
+        app:fab_colorNormal="@color/white"
+        app:fab_colorPressed="@color/pink"
+        app:fab_icon="@drawable/ic_live_help_black_24dp"
+        app:fab_size="mini"
+        app:fab_title="Add image" />
 
 
 </FrameLayout>

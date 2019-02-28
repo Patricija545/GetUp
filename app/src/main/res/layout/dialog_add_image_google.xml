@@ -10,13 +10,13 @@
 
     <TextView
         android:id="@+id/textView5"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_weight="0.1"
         android:fontFamily="cursive"
-        android:text="Type in the keyword:"
+        android:text="What kind of goal do you want to accomplish? How do you want to feel? type in the english keyword"
         android:textAppearance="@style/TextAppearance.AppCompat.Display1"
-        android:textSize="30sp" />
+        android:textSize="18sp" />
 
     <EditText
         android:id="@+id/imageName"
@@ -59,7 +59,6 @@
         android:layout_gravity="center"
         android:layout_weight="0.1"
         android:text="search"
-        android:textAppearance="@style/TextAppearance.AppCompat.Button"
         android:textSize="14sp" />
 
 </LinearLayout>

@@ -1,8 +1,10 @@
 <resources>
-    <string name="app_name">PripremaZaGetUp</string>
+    <string name="app_name">GetUp</string>
     <string-array name="spinner_entries">
         <item>sans-serif</item>
         <item>serif</item>
         <item>monospace</item>
     </string-array>
+    <string name="title_activity_fab_test">FabTest</string>
+    <string name="title_activity_main3">Main3Activity</string>
 </resources>

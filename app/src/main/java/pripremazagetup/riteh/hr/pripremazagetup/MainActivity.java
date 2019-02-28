@@ -2,16 +2,15 @@ package pripremazagetup.riteh.hr.pripremazagetup;
 
 import android.Manifest;
 import android.app.Dialog;
-import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
@@ -31,7 +30,6 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
@@ -40,27 +38,21 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.squareup.picasso.Picasso;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.w3c.dom.Text;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Random;
@@ -69,54 +61,55 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
     String TAG = this.getClass().getSimpleName();
 
-    CustomDrawableView mCustomDrawableView;
-    Object mObjectFromCanvas = null;
-    Bitmap mImageTestBitmap;
-    Dialog mAddImageDialog, mAddTextDialog, mAddImageGoogleDialog;
-    TextView mTextPreview;
-    Spinner spinnerFontFamily;
-    String mFontFamilyName;
+    public static boolean mFlagCanvasClicked = false;
+    private static int imagesFromGoogleNum = 16;
+    private static final int SELECT_PICTURE = 1;
 
     private int maxImageNum = 9;
     private int maxTextNum = 9;
-    Point mTouchedPt = new Point(0,0);
+    private int mImgNum = 0;
+    private int mTextNum = 0;
 
-    boolean mFlagTouched = false;
-    public static boolean mFlagCanvasClicked = false;
-    boolean mFlagScale = false;
-    boolean mFlagDelete = false;
-    boolean mFlagDialogFirstOpen = true;
-    private static final int SELECT_PICTURE = 1;
+    private boolean mFlagTouched = false;
+    private boolean mFlagScale = false;
+    private boolean mFlagDialogFirstOpen = true;
+
+    private Point mTouchedPt = new Point(0,0);
+
     private String selectedImagePath;
     private int currentIndex = 0;
     private int mFontSize = 18;
-    private int mImgNum = 0;
-    private int mTextNum = 0;
     private int mFontColorID = R.color.black;
-    private int colors[] = {R.color.white, R.color.red, R.color.orange, R.color.yellow, R.color.green, R.color.turquoise, R.color.lightBlue, R.color.darkBlue, R.color.purple, R.color.pink};
-    static private int imagesFromGoogleNum = 16;
+
+    private int colors[] = {R.color.black, R.color.white, R.color.red, R.color.orange, R.color.yellow, R.color.green, R.color.lightBlue, R.color.darkBlue, R.color.purple, R.color.pink};
 
     private ArrayList<Bitmap> mImagesBitmap = new ArrayList<>();
+    private static ArrayList<String> imagesFromGoogle = new ArrayList<>();
 
-    static ArrayList<String> imagesFromGoogle;
-    ProgressBar imageSearchProgress;
-
+    private ProgressBar imageSearchProgress;
+    private CustomDrawableView mCustomDrawableView;
+    private Dialog mAddImageDialog, mAddTextDialog;
+    private TextView mTextPreview;
+    private Spinner spinnerFontFamily;
+    private Object mObjectFromCanvas = null;
+    private String mFontFamilyName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        imagesFromGoogle = new ArrayList<>();
+        // SET ORIENTATION TO PORTRET
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         // INITIALIZE VIEWS
         ConstraintLayout mLinearLayout = findViewById(R.id.drawLayout);
         FloatingActionButton fabAddImage = findViewById(R.id.fab_add_image);
         FloatingActionButton fabAddText = findViewById(R.id.fab_add_text);
         FloatingActionButton fabSave = findViewById(R.id.fab_save);
-        mAddImageDialog = new Dialog(this,android.R.style.Theme_Light_NoTitleBar);//ThemeOverlay_Material_Dark); //Theme_Black_NoTitleBar_Fullscreen);
-        mAddTextDialog = new Dialog(this,android.R.style.Theme_Light_NoTitleBar);
-        mAddImageGoogleDialog = new Dialog(this);
+        FloatingActionButton fabHelp = findViewById(R.id.fab_help);
+        mAddImageDialog = new Dialog(this,android.R.style.Theme_Light_WallpaperSettings);//ThemeOverlay_Material_Dark); //Theme_Black_NoTitleBar_Fullscreen);
+        mAddTextDialog = new Dialog(this,android.R.style.Theme_Light_Panel);
         mAddTextDialog.setContentView(R.layout.dialog_add_text);
         mCustomDrawableView = new CustomDrawableView(this);
         spinnerFontFamily = mAddTextDialog.findViewById(R.id.spinnerFontFamily);
@@ -131,30 +124,38 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         fabAddImage.setOnClickListener(handleClickAddImage);
         fabAddText.setOnClickListener(handleClickAddText);
 
+        Dialog helpDialog = new Dialog(this, android.R.style.Theme_Light_NoTitleBar);
+
+        fabHelp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                helpDialog.setContentView(R.layout.dialog_help);
+                helpDialog.show();
+
+                Button btnExit = helpDialog.findViewById(R.id.btnExit);
+                btnExit.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        helpDialog.dismiss();
+                    }
+                });
+            }
+        });
 
         fabSave.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-
-                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
-                Bitmap img = getBitmapFromView(mCustomDrawableView);
-
-                saveImageToExternalStorage(img);
-                showToast("Image saved in the gallery.");
-
-
-                // CHANGE ANDROID WALLPAPER
-/*               WallpaperManager wallpaperManager = WallpaperManager.getInstance(getApplicationContext());
-                try {
-                    wallpaperManager.setBitmap(img);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }*/
-            }
+            public void onClick(View view) { saveImage(); }
         });
 
     }
 
+    // SAVE IMAGE TO EXTERNAL STORAGE
+    void saveImage() {
+        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+        Bitmap img = getBitmapFromView(mCustomDrawableView);
+        saveImageToExternalStorage(img);
+        showToast("Image saved in the gallery.");
+    }
     public static Bitmap getBitmapFromView(View view) {
         Bitmap returnedBitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(),Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(returnedBitmap);
@@ -167,7 +168,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         view.draw(canvas);
         return returnedBitmap;
     }
-
     private void saveImageToExternalStorage(Bitmap finalBitmap) {
         String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
         File myDir = new File(root  + "/GetUp");
@@ -189,8 +189,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             e.printStackTrace();
         }
 
-        // Tell the media scanner about the new file so that it is
-        // immediately available to the user.
+        // NEEDED FOR KITKAT (19-20) AND NEWER
         MediaScannerConnection.scanFile(this, new String[] { file.toString() }, null,
                 new MediaScannerConnection.OnScanCompletedListener() {
                     public void onScanCompleted(String path, Uri uri) {
@@ -198,35 +197,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         Log.i("ExternalStorage", "-> uri=" + uri);
                     }
                 });
-    }
-
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-        if (mImagesBitmap.size() > 0) {
-            outState.putParcelableArrayList("bitmap", mImagesBitmap);
-        }
-
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-
-        if (savedInstanceState != null) {
-
-            mImagesBitmap = savedInstanceState.getParcelableArrayList("bitmap");
-
-            mImgNum = mImagesBitmap.size();
-            for (int i = 0; i < mImgNum; i++) {
-                mCustomDrawableView.setmImage(new BitmapDrawable(getResources(), mImagesBitmap.get(i)), mImagesBitmap.get(i));
-                mCustomDrawableView.invalidate();
-            }
-
-        }
-
     }
 
     // ADD TEXT DIALOG
@@ -237,10 +207,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     };
 
-
     void add_text_dialog(MyText textChange) {
-        // SHOW DIALOG FOR ADDING TEXT
-        mAddTextDialog.show();
+
+        if (mTextNum < maxTextNum || textChange!= null) {
+            // SHOW DIALOG FOR ADDING TEXT
+            mAddTextDialog.show();
+        }
+        else {
+            showToast("Maximum number of texts is " + maxTextNum);
+        }
 
         // INITIALIZE VIEWS
         mTextPreview = mAddTextDialog.findViewById(R.id.previewText);
@@ -262,6 +237,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             if (mFontFamilyName.equals("sans-serif")) spinnerFontFamily.setSelection(0);
             else if (mFontFamilyName.equals("serif")) spinnerFontFamily.setSelection(1);
             else if (mFontFamilyName.equals("monospace")) spinnerFontFamily.setSelection(2);
+
+            btnAddTextToCanvas.setText("Change");
         }
         else {
             // SET
@@ -269,7 +246,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             seekBarFontSize.setProgress(8);
             spinnerFontFamily.setSelection(0);
             mFontFamilyName = "sans-serif";
+            mFontColorID = R.color.black;
             mTextPreview.setTextColor(getResources().getColor(R.color.black));
+
+            btnAddTextToCanvas.setText("Add");
         }
 
         // ADD BUTTONS FOR COLOR PICKING ON FIRST OPENING
@@ -338,15 +318,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 // GET TEXT WHICH WILL BE PUT ON CANVAS AND SHOW IT IN PREVIEW SECTION
                 String textString = charSequence.toString();
 
-                int lines = 0;
+                int lines = 1;
                 for (int z = 0; z < textString.length(); z++) {
                     char c = textString.charAt(z);
                     if (c == '\n') {
                         lines++;
                     }
                 }
+                mTextPreview.setLines(lines);
 
-                if (lines >= 4){
+                if (lines > 4){
                     mText.setText(beforeChanged);
                     mText.setSelection(beforeChanged.length()-1);
                     showToast("Maximum number of lines is 4. You can split your text in more parts by adding another text for second part. :)");
@@ -360,7 +341,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 else {
                     mTextPreview.setText(textString);
                 }
-
             }
 
             @Override
@@ -375,34 +355,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 int color = getResources().getColor(mFontColorID);
 
                 if (textChange != null) {
-                    /*
-                    textChange.setPaint(text, color, (mFontSize + 30), mFontFamilyName);
-                    textChange.setMoveRect();
-                    textChange.setDeleteRect();
-                    mCustomDrawableView.invalidate();*/
+                    add_text(true, text, color, (mFontSize + 30), mFontFamilyName, textChange.getBeginPt());
                     mCustomDrawableView.deleteObject(currentIndex);
-                    add_text(text, color, (mFontSize + 30), mFontFamilyName, new Point(textChange.getBeginPt().x, textChange.getBeginPt().y));
-
-
-                    //mCustomDrawableView.setText(text, color, fontSize, fontFamily, beginPt);
-                    //void setPaint(String text, int size, int color, String fontFamily) {
-                    //add_text(text, color, (mFontSize + 30), mFontFamilyName, new Point(100, 100));
-
-                }
-                else if (mTextNum < maxTextNum) {
-                    add_text(text, color, (mFontSize + 30), mFontFamilyName, new Point(100, 100));
-
-                    /*
-                    // SET ALL SELECTED TO TEXT ON CANVAS
-                    mTextCanvas.setText(mTextPreview.getText().toString());
-                    mTextCanvas.setTextSize(mFontSize);
-                    mTextCanvas.setTypeface(Typeface.create(mFontFamilyName, Typeface.NORMAL));
-                    mTextCanvas.setTextColor(getResources().getColor(mFontColorID));
-                    mTextCanvas.setVisibility(View.VISIBLE);
-                    */
+                    mCustomDrawableView.invalidate();
                 }
                 else {
-                    showToast("Maximum number of texts is " + maxImageNum);
+                    add_text(false, text, color, (mFontSize + 30), mFontFamilyName, new Point(100, 100));
                 }
 
                 // CLOSE DIALOG
@@ -411,18 +369,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
         });
     }
-
-    void textEdit (MyText text) {
-        Point endPoint = text.getEndPt();
-
-        if ((mTouchedPt.x > endPoint.x && mTouchedPt.y > endPoint.y)
-                && (mTouchedPt.x < (endPoint.x  + 100) && mTouchedPt.y < (endPoint.y + 100)))
-        {
-            mObjectFromCanvas = text;
-            add_text_dialog(text);
-        }
-    }
-
 
     // SPINNER (SELECT FONT FAMILY) LISTENER
     @Override
@@ -447,10 +393,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
 
     }
-
     @Override
     public void onNothingSelected(AdapterView<?> adapterView) { }
-
 
     // BUTTON LISTENER FOR COLOR PICKING
     private final View.OnClickListener handleClickChooseColor = new View.OnClickListener() {
@@ -468,66 +412,82 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     };
 
-
     // ADD TEXT TO CANVAS
-    void add_text(String text, int color, int fontSize, String fontFamily, Point beginPt) {
+    void add_text(boolean change, String text, int color, int fontSize, String fontFamily, Point beginPt) {
         mCustomDrawableView.setText(text, color, fontSize, fontFamily, beginPt);
-        mTextNum++;
         mCustomDrawableView.invalidate();
         mAddImageDialog.dismiss();
+
+        if (!change) {
+            mTextNum++;
+        }
     }
 
+    // EDIT TEXT WHICH IS ALREADY ON CANVAS
+    void textEdit (MyText text, int index) {
+        Point endPoint = text.getEndPt();
+
+        if ((mTouchedPt.x > endPoint.x && mTouchedPt.y > endPoint.y)
+                && (mTouchedPt.x < (endPoint.x  + 100) && mTouchedPt.y < (endPoint.y + 100)))
+        {
+            mObjectFromCanvas = text;
+            add_text_dialog(text);
+            currentIndex = index;
+        }
+    }
+
+
+    // ADD IMAGE DIALOG
     private View.OnClickListener handleClickAddImage = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
             mAddImageDialog.setContentView(R.layout.dialog_add_image);
-            mAddImageDialog.show();
 
-            // GET IMAGE FROM GALLERY
-            Button imageFromGallery = (Button) mAddImageDialog.findViewById(R.id.imageFromGallery);
+            if (mImgNum < maxImageNum) {
+                mAddImageDialog.show();
+            }
+            else {
+                showToast("Maximum number of images is " + maxImageNum);
+            }
+
+            Button imageFromGallery = mAddImageDialog.findViewById(R.id.imageFromGallery);
+            Button imageFromGoogle = mAddImageDialog.findViewById(R.id.imageFromGoogle);
+
             imageFromGallery.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if (mImgNum < maxImageNum) {
-                        get_image_from_phone_gallery();
-                    }
-                    else {
-                        showToast("Maximum number of images is " + maxImageNum);
-                    }
+                    get_image_from_phone_gallery();
                 }
             });
 
-            Button imageFromGoogle = (Button) mAddImageDialog.findViewById(R.id.imageFromGoogle);
             imageFromGoogle.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if (mImgNum < maxImageNum) {
                         mAddImageDialog.setContentView(R.layout.dialog_add_image_google);
                         get_image_from_google();
-                    }
-                    else {
-                        showToast("Maximum number of images is " + maxImageNum);
-                    }
                 }
             });
 
         }
     };
 
-
     // ADD IMAGE TO CANVAS
     void add_image(Drawable img, Bitmap imgBitmap) {
         mCustomDrawableView.setmImage(img, imgBitmap);
-        Image image = (Image) mCustomDrawableView.objectBuffer.get(currentIndex);
-        //image.setmWidth(500);//(img.getIntrinsicWidth());
-        //image.setmHeight(500);//(img.getIntrinsicHeight());
-
         mImgNum ++;
         mCustomDrawableView.invalidate();
         mAddImageDialog.dismiss();
         mImagesBitmap.add(imgBitmap);
+
+        if (mImgNum == 1) {
+            showToast("Well done. Nice start with defining your goals :)");
+        }
+        if (mImgNum == maxImageNum) {
+            showToast("It seems like you are slowly coming to the end of defining your goals.");
+        }
     }
 
+    // IMAGE FROM GOOGLE
     void get_image_from_google() {
         EditText imageName = mAddImageDialog.findViewById(R.id.imageName);
         imageSearchProgress = mAddImageDialog.findViewById(R.id.progressBar2);
@@ -544,24 +504,44 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     LinearLayout showImages = mAddImageDialog.findViewById(R.id.linearLayout);
                     showImages.removeAllViews();
 
-
+                    // PIXABAY - FREE IMAGES
                     String search_url = "https://pixabay.com/en/photos/" + //"https://www.google.com/search?site=imghp&tbm=isch&q=" +
                             imageName.getText().toString();
-                    get_search_images search_task = new get_search_images(MainActivity.this, search_url);
+                    showFoundImages search_task = new showFoundImages(MainActivity.this, search_url);
                     search_task.execute();
                 }
             }
         });
 
     }
+    private static void getImagesJSOUP(String url) {
+        // JSOUP - JAVA HTML PARSER
+        Document doc = null;
+        try {
+            doc = Jsoup.connect(url).get();
+        } catch (IOException e) { }
 
-    private static class get_search_images extends AsyncTask<Void, Void, Void> {
+        if (doc != null) {
+            imagesFromGoogle.clear();
+
+            Elements imgs = doc.select("img");
+            int i = 0;
+            for (Element img : imgs) {
+                String img_url = img.attr("src");
+                if (!(img_url.isEmpty()) &&  i < imagesFromGoogleNum) {
+                    imagesFromGoogle.add(img_url);
+                    i++;
+                }
+            }
+        }
+    }
+    private static class showFoundImages extends AsyncTask<Void, Void, Void> {
         private WeakReference<MainActivity> activityWeakRef;
         private String url;
 
         private Context mContext;
 
-        get_search_images(MainActivity context, String url) {
+        showFoundImages(MainActivity context, String url) {
             this.activityWeakRef = new WeakReference<>(context);
             this.url = url;
 
@@ -570,7 +550,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         @Override
         protected Void doInBackground(Void... arg0) {
-            getImages(this.url);
+            getImagesJSOUP(this.url);
             return null;
         }
 
@@ -608,6 +588,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
                     showImages.addView(ll);
 
+                    // WHEN IMAGEVIEW IS CLICKED, PUT IT ON CANVAS
                     image1.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
@@ -655,37 +636,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     }
 
-    private static void getImages(String url) {
-        // JSOUP - JAVA HTML PARSER
-        Document doc = null;
-        try {
-            doc = Jsoup.connect(url)
-                    //.userAgent("Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.114 Safari/537.36")
-                    .get();
-        } catch (IOException e) { }
-
-        if (doc != null) {
-            imagesFromGoogle.clear();
-
-            Elements imgs = doc.select("img");
-            int i = 0;
-            for (Element img : imgs) {
-                String img_url = img.attr("src");
-                if (!(img_url.isEmpty()) &&  i < imagesFromGoogleNum) {
-                    imagesFromGoogle.add(img_url);
-                    i++;
-                }
-            }
-        }
-    }
-
+    // IMAGE FROM PHONE GALLERY
     void get_image_from_phone_gallery() {
         // CHOOSE IMAGE FROM IMAGE FOLDER
         Intent i = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(i, SELECT_PICTURE);
 
     }
-
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK)
         {
@@ -696,9 +653,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 Log.d("ExternalStorage", "pathh: " + selectedImagePath);
 
                 try {
+                    // PUT IMAGE IN DRAWABLE AND BITMAP
                     InputStream inputStream = getContentResolver().openInputStream(selectedImageUri);
                     Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                    //bitmap = Bitmap.createScaledBitmap(bitmap, 400, 600,true);
                     Drawable drawable = new BitmapDrawable(getResources(), bitmap);
                     add_image(drawable, bitmap);
 
@@ -707,7 +664,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
         }
     }
-
     public String getImagePath(Uri uri) {
 
         if( uri == null ) {
@@ -731,59 +687,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         return uri.getPath();
     }
 
-    private View.OnClickListener handleClickRemoveImage = new View.OnClickListener() {
 
-        @Override
-        public void onClick(View view) {
-            int objectNum = mCustomDrawableView.objectBuffer.size();
-            if (objectNum > 0) {
-
-                try {
-                    mFlagTouched = false;
-                    mCustomDrawableView.deleteObject(currentIndex);
-                    mImgNum--;
-                    mCustomDrawableView.invalidate();
-                }
-                catch (Exception e) {
-                    showToast("Please first click on object you want to delete");
-                }
-            }
-        }
-    };
-
-
-    boolean objectTouch(Object objectFromCanvas) {
-
-        if (objectFromCanvas instanceof Image) {
-            Image img = (Image)objectFromCanvas;
-
-            Point beginPoint = img.getmBeginPt();
-            Point endPoint = img.getmEndPt();
-
-            if ((mTouchedPt.x > beginPoint.x && mTouchedPt.y > beginPoint.y)
-                    && (mTouchedPt.x < endPoint.x && mTouchedPt.y < endPoint.y))
-            {
-                mObjectFromCanvas = img;
-                return true;
-            }
-        }
-        else if (objectFromCanvas instanceof  MyText){
-            MyText text = (MyText) objectFromCanvas;
-
-            Point beginPoint = text.getBeginPt();
-            Point endPoint = text.getEndPt();
-
-            if ((mTouchedPt.x >= (beginPoint.x - 100) && mTouchedPt.y >= (beginPoint.y - 100))
-                    && (mTouchedPt.x <= endPoint.x && mTouchedPt.y <= endPoint.y))
-            {
-                mObjectFromCanvas = text;
-                return true;
-            }
-        }
-
-        return false;
-    }
-
+    // WHICH OBJECT FOR SCALING
     boolean objectScale(Object objectFromCanvas) {
 
         if (objectFromCanvas instanceof Image) {
@@ -798,12 +703,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
         }
 
-        // SCALE OF TEXT?
-
-
         return  false;
     }
 
+    // DELETE
     boolean objectDelete(Object objectFromCanvas, int index) {
         if (objectFromCanvas instanceof Image) {
             Image img = (Image) objectFromCanvas;
@@ -813,31 +716,26 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             if (mTouchedPt.x > (endPoint.x - 50) && mTouchedPt.y > (beginPoint.y - 50)
                     && mTouchedPt.x < (endPoint.x + 50) && mTouchedPt.y < (beginPoint.y + 50))
             {
-                //mObjectFromCanvas = img;
-
                 int objectNum = mCustomDrawableView.objectBuffer.size();
                 if (objectNum > 0)
                 {
                     mFlagTouched = false;
                     mCustomDrawableView.deleteObject(index);
+                    mImagesBitmap.remove(index);
                     mImgNum--;
                     mCustomDrawableView.invalidate();
                 }
-                return true; // !!!
+                return true; // IMPORTANT
 
             }
         }
         if (objectFromCanvas instanceof MyText) {
             MyText text = (MyText) objectFromCanvas;
             Point beginPoint = text.getBeginPt();
-            Point endPoint = text.getEndPt();
 
-            //mDeleteRect.setBounds(mBeginPt.x - 100, mBeginPt.y - 100, mBeginPt.x, mBeginPt.y);
             if ((mTouchedPt.x >= (beginPoint.x - 100) && mTouchedPt.y >= (beginPoint.y - 100))
                     && (mTouchedPt.x <= beginPoint.x && mTouchedPt.y <= beginPoint.y))
             {
-                //mObjectFromCanvas = img;
-
                 int objectNum = mCustomDrawableView.objectBuffer.size();
                 if (objectNum > 0)
                 {
@@ -846,7 +744,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     mTextNum--;
                     mCustomDrawableView.invalidate();
                 }
-                return true; // !!!
+                return true; // IMPORTANT
 
             }
         }
@@ -855,7 +753,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         return false;
     }
 
-
+    // MOVE
     void moveObject (Point movedPt) {
         if (mObjectFromCanvas instanceof Image) {
             Image img = (Image) mObjectFromCanvas;
@@ -900,11 +798,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
             int testEndX = endPoint.x + mDifferencePt.x;
             int testEndY = endPoint.y + mDifferencePt.y;
-            float textSize = text.getPaint().getTextSize();
-
 
             // IF INSIDE CANVAS
-
             if ((testBeginX  >= 0) && (testBeginY >= 0)
                     && (testEndX < mCustomDrawableView.mCanvasWidth)
                     && (testEndY < mCustomDrawableView.mCanvasHeight))
@@ -927,6 +822,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     }
 
+    // SCALE
     void scaleObject(Point movedPt) {
 
         if (mObjectFromCanvas instanceof Image) {
@@ -951,14 +847,40 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     }
 
-    int getCurrentIndex() {
-        return currentIndex;
+    // WHICH OBJECT IS TOUCHED
+    boolean objectTouch(Object objectFromCanvas) {
+
+        if (objectFromCanvas instanceof Image) {
+            Image img = (Image)objectFromCanvas;
+
+            Point beginPoint = img.getmBeginPt();
+            Point endPoint = img.getmEndPt();
+
+            if ((mTouchedPt.x > beginPoint.x && mTouchedPt.y > beginPoint.y)
+                    && (mTouchedPt.x < endPoint.x && mTouchedPt.y < endPoint.y))
+            {
+                mObjectFromCanvas = img;
+                return true;
+            }
+        }
+        else if (objectFromCanvas instanceof  MyText){
+            MyText text = (MyText) objectFromCanvas;
+
+            Point beginPoint = text.getBeginPt();
+            Point endPoint = text.getEndPt();
+
+            if ((mTouchedPt.x >= (beginPoint.x - 100) && mTouchedPt.y >= (beginPoint.y - 100))
+                    && (mTouchedPt.x <= endPoint.x && mTouchedPt.y <= endPoint.y))
+            {
+                mObjectFromCanvas = text;
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    void setCurrentIndex(int index) {
-        currentIndex = index;
-    }
-
+    // DETECT WHICH OBJECT IS TOUCHED AND WHAT PART OF IT (RECT FOR MOVE, SCALE, DELETE,...)
     private View.OnTouchListener handleTouchCanvas = new View.OnTouchListener() {
 
         @Override
@@ -977,7 +899,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         Object objectFromCanvas = objectBuffer.get(i);
 
                         if (objectFromCanvas instanceof MyText) {
-                            textEdit((MyText)objectFromCanvas);
+                            textEdit((MyText)objectFromCanvas, i);
                         }
 
                         // RECT FOR DELETE IS TOUCHED
@@ -985,21 +907,19 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         // OBJECT IS TOUCHED
                         else if (objectTouch(objectFromCanvas)) {
                             mFlagTouched = true;
-                            setCurrentIndex(i);
-                            //mCustomDrawableView.invalidate();
+                            currentIndex = i;
                             break;
                         }
                         // RECT FOR SCALE IS TOUCHED
                         else if (objectScale(objectFromCanvas)) {
                             mFlagScale = true;
-                            setCurrentIndex(i);
+                            currentIndex = i;
                             break;
                         }
                         // TOUCHED SOMEWHERE ON THE CANVAS
                         else {
                             mFlagTouched = false;
                             mFlagScale = false;
-                            mFlagDelete = false;
                             mCustomDrawableView.invalidate();
                         }
                     }
@@ -1021,9 +941,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 case MotionEvent.ACTION_UP:
 
                     if (mFlagTouched) {
-                       mCustomDrawableView.putTouchedObjectFirst(getCurrentIndex());
+                       mCustomDrawableView.putTouchedObjectFirst(currentIndex);
                        mCustomDrawableView.invalidate();
-                        mFlagCanvasClicked = false;
+                       mFlagCanvasClicked = false;
                     }
                     else {
                         mCustomDrawableView.invalidate();
@@ -1041,9 +961,40 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     };
 
-
+    // TOAST
     void showToast(String text) {
         Toast.makeText(getApplication(), text, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        deleteCache(this);
+        super.onDestroy();
+    }
+
+    // DELETE CACHE OF APPLICATION
+    public static void deleteCache(Context context) {
+        try {
+            File dir = context.getCacheDir();
+            deleteDir(dir);
+        } catch (Exception e) { e.printStackTrace();}
+    }
+
+    public static boolean deleteDir(File dir) {
+        if (dir != null && dir.isDirectory()) {
+            String[] children = dir.list();
+            for (int i = 0; i < children.length; i++) {
+                boolean success = deleteDir(new File(dir, children[i]));
+                if (!success) {
+                    return false;
+                }
+            }
+            return dir.delete();
+        } else if(dir!= null && dir.isFile()) {
+            return dir.delete();
+        } else {
+            return false;
+        }
     }
 
 }

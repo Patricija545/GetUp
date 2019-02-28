@@ -14,21 +14,15 @@ public class BeforeMain extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_before_main);
 
-        new CountDownTimer(1000, 1000) {
+        new CountDownTimer(4000, 1000) {
 
-            public void onTick(long millisUntilFinished) {
-                /*
-                // one second till the countdown
-                if (millisUntilFinished/1000 == 1) {
-                }*/
-            }
+            public void onTick(long millisUntilFinished) { }
 
             public void onFinish() {
                 Intent myIntent = new Intent(BeforeMain.this, MainActivity.class);
                 BeforeMain.this.startActivity(myIntent);
             }
         }.start();
-
 
     }
 }

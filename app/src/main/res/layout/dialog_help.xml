@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:weightSum="1">
+
+
+    <Button
+        android:id="@+id/btnExit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.005"
+        android:layout_gravity="right|top"
+        android:background="@drawable/ic_cancel_black_24dp"
+        />
+
+    <TextView
+        android:id="@+id/textView10"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.095"
+        android:fontFamily="cursive"
+        android:gravity="center"
+        android:text="Welcome to GetUp"
+        android:textAllCaps="false"
+        android:textAppearance="@style/TextAppearance.AppCompat.Title"
+        android:textSize="24sp" />
+
+    <TextView
+        android:id="@+id/textView9"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.9"
+        android:fontFamily="cursive"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:text=
+            "Purpose of this mobile application is to help you find out what you want in your life. I am sure you will create a beautiful master piece here with just a little bit of imagination and creativity."
+        android:textSize="18sp" />
+
+
+
+</LinearLayout>

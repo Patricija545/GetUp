@@ -12,8 +12,11 @@ android:gravity="center">
         android:id="@+id/textView2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Choose image from:"
-        android:textSize="20dp" />
+        android:fontFamily="cursive"
+        android:gravity="center"
+        android:text="Get image from"
+        android:textSize="20dp"
+        android:textStyle="bold" />
 
     <Button
         android:id="@+id/imageFromGallery"
@@ -25,14 +28,18 @@ android:gravity="center">
         android:id="@+id/imageFromGoogle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Internet" />
+        android:text="Google" />
 
     <TextView
         android:id="@+id/textView8"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:fontFamily="cursive"
         android:gravity="center"
-        android:text="(why do it yourself if Google can do it for you?)" />
+        android:text="(why do it yourself if Google can do it for you?)"
+        android:textColor="@color/pink"
+        android:textSize="18sp"
+        android:textStyle="bold" />
 
 </LinearLayout>

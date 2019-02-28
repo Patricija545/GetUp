@@ -14,8 +14,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0.1"
+        android:fontFamily="cursive"
         android:text="Type motivational text or quote:"
-        android:textSize="20dp" />
+        android:textSize="24sp" />
 
     <EditText
         android:id="@+id/textCanvas"
@@ -34,6 +35,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0.1"
+        android:fontFamily="cursive"
         android:gravity="bottom"
         android:text="Choose font:"
         android:textSize="20sp" />
@@ -50,7 +52,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0.1"
-        android:text="Choose size:" />
+        android:fontFamily="cursive"
+        android:text="Choose size:"
+        android:textSize="18sp" />
 
     <SeekBar
         android:id="@+id/seekbar_font_size"
@@ -75,6 +79,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0.1"
+        android:fontFamily="cursive"
         android:gravity="bottom"
         android:text="Preview:"
         android:textSize="20sp" />
@@ -85,13 +90,14 @@
         android:layout_height="wrap_content"
         android:layout_weight="0.1"
         android:textColor="@color/black"
-        android:textSize="24sp" />
+        android:textSize="24sp"
+        android:lines="1"/>
 
     <Button
         android:id="@+id/btnAddText2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="add text"
+        android:text="Add"
         android:layout_weight="0.1"/>
 
 </LinearLayout>
