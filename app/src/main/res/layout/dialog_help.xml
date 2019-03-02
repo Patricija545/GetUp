@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="0.005"
         android:layout_gravity="right|top"
-        android:background="@drawable/ic_cancel_black_24dp"
+        android:background="@drawable/ic_exit_black_24dp"
         />
 
     <TextView

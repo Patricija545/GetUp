@@ -32,9 +32,10 @@
             android:layout_height="wrap_content"
             app:fab_colorNormal="@color/white"
             app:fab_colorPressed="@color/pink"
-            app:fab_icon="@drawable/ic_filter_hdr_black_24dp"
-            app:fab_size="mini"
-            app:fab_title="Image" />
+            app:fab_icon="@drawable/ic_add_image_black_24dp"
+            app:fab_size="mini"/>
+            <!--app:fab_title="Image"-->
+
 
         <com.getbase.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_add_text"
@@ -42,9 +43,10 @@
             android:layout_height="wrap_content"
             app:fab_colorNormal="@color/white"
             app:fab_colorPressed="@color/pink"
-            app:fab_icon="@drawable/ic_text_format_black_24dp"
-            app:fab_size="mini"
-            app:fab_title="Text" />
+            app:fab_icon="@drawable/ic_add_text_black_24dp"
+            app:fab_size="mini" />
+            <!--app:fab_title="Text"-->
+
 
         <com.getbase.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_save"
@@ -52,9 +54,9 @@
             android:layout_height="wrap_content"
             app:fab_colorNormal="@color/white"
             app:fab_colorPressed="@color/pink"
-            app:fab_icon="@drawable/ic_beenhere_black_24dp"
-            app:fab_size="mini"
-            app:fab_title="Save" />
+            app:fab_icon="@drawable/ic_save_black_24dp"
+            app:fab_size="mini"/>
+            <!--app:fab_title="Save" -->
 
 
     </com.getbase.floatingactionbutton.FloatingActionsMenu>
@@ -66,9 +68,8 @@
         android:layout_gravity="right|top"
         app:fab_colorNormal="@color/white"
         app:fab_colorPressed="@color/pink"
-        app:fab_icon="@drawable/ic_live_help_black_24dp"
-        app:fab_size="mini"
-        app:fab_title="Add image" />
+        app:fab_icon="@drawable/ic_help_black_24dp"
+        app:fab_size="mini"/>
 
 
 </FrameLayout>

@@ -54,7 +54,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Random;
 
 
@@ -81,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private int mFontSize = 18;
     private int mFontColorID = R.color.black;
 
+
     private int colors[] = {R.color.black, R.color.white, R.color.red, R.color.orange, R.color.yellow, R.color.green, R.color.lightBlue, R.color.darkBlue, R.color.purple, R.color.pink};
 
     //private ArrayList<Bitmap> mImagesBitmap = new ArrayList<>();
@@ -93,6 +96,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private Spinner spinnerFontFamily;
     private Object mObjectFromCanvas = null;
     private String mFontFamilyName;
+
+    private Toast mToast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -172,10 +177,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
         File myDir = new File(root  + "/GetUp");
         myDir.mkdirs();
-        Random generator = new Random();
-        int n = 10000;
-        n = generator.nextInt(n);
-        String fname = "Image-" + n + ".jpg";
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
+        String currentTimeStamp = dateFormat.format(new Date());
+        String fname = "GETUP_" + currentTimeStamp + ".jpg";
         File file = new File(myDir, fname);
         if (file.exists())
             file.delete();
@@ -199,7 +203,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 });
     }
 
-    // ADD TEXT DIALOG
+    // ALL FOR DIALOG FOR ADDING TEXT
     private final View.OnClickListener handleClickAddText = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
@@ -330,6 +334,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 if (lines > 4){
                     mText.setText(beforeChanged);
                     mText.setSelection(beforeChanged.length()-1);
+                    mTextPreview.setText(beforeChanged);
                     showToast("Maximum number of lines is 4. You can split your text in more parts by adding another text for second part. :)");
                 }
                 else if (textString.length() == 95) {
@@ -967,8 +972,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     };
 
     // TOAST
-    void showToast(String text) {
-        Toast.makeText(getApplication(), text, Toast.LENGTH_LONG).show();
+    public void showToast (String message){
+        if (mToast != null) {
+            mToast.cancel();
+        }
+        mToast = Toast.makeText(this, message, Toast.LENGTH_LONG);
+        mToast.show();
     }
 
     @Override
