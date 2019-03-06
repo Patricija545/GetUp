@@ -81,8 +81,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private String selectedImagePath;
     private int currentIndex = 0;
     private int mFontSize = 18;
-    private int mFontColorID = R.color.black;
-
+    private int mFontColorID;
 
     private int colors[] = {R.color.black, R.color.white, R.color.red, R.color.orange, R.color.yellow, R.color.green, R.color.lightBlue, R.color.darkBlue, R.color.purple, R.color.pink};
 
@@ -236,6 +235,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             mTextPreview.setTextColor(textChange.getPaint().getColor());
             mTextPreview.setText(textChange.getText());
             mTextPreview.setTextSize(textChange.getPaint().getTextSize() - 30);
+            mFontColorID = textChange.getPaint().getColor();
 
             mFontFamilyName = textChange.getFontFamily();
             if (mFontFamilyName.equals("sans-serif")) spinnerFontFamily.setSelection(0);
@@ -250,7 +250,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             seekBarFontSize.setProgress(8);
             spinnerFontFamily.setSelection(0);
             mFontFamilyName = "sans-serif";
-            mFontColorID = R.color.black;
+            mFontColorID = getResources().getColor(R.color.black);
             mTextPreview.setTextColor(getResources().getColor(R.color.black));
 
             btnAddTextToCanvas.setText("Add");
@@ -357,16 +357,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             @Override
             public void onClick(View view) {
                 String text = mTextPreview.getText().toString();
-                int color = getResources().getColor(mFontColorID);
 
                 if (textChange != null) {
-                    add_text(true, text, color, (mFontSize + 30), mFontFamilyName, textChange.getBeginPt());
+                    add_text(true, text, mFontColorID, (mFontSize + 30), mFontFamilyName, textChange.getBeginPt());
                     mCustomDrawableView.deleteObject(currentIndex);
                     mCustomDrawableView.invalidate();
                     mObjectFromCanvas = mCustomDrawableView.getObjectBuffer().get(currentIndex);
                 }
                 else {
-                    add_text(false, text, color, (mFontSize + 30), mFontFamilyName, new Point(100, 100));
+                    add_text(false, text, mFontColorID, (mFontSize + 30), mFontFamilyName, new Point(100, 100));
                 }
 
                 // CLOSE DIALOG
@@ -411,7 +410,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 if (view.getId() == i) {
                     // IF BUTTON IS CLICKED, SAVE ITS COLOR ID
                     mTextPreview.setTextColor(getResources().getColor(colors[i]));
-                    mFontColorID = colors[i];
+                    mFontColorID = getResources().getColor(colors[i]);
                 }
             }
 
