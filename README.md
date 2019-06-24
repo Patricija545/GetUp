@@ -10,9 +10,10 @@ Scale image:
 2. click and hold white rect and drag it along the canvas
 
 Make image on top:
-- double click on image
+- click on image
 
 Delete image:
 1. click on image
-2. press "delete image" button
+2. press red button on top of the image
 
+Move and delete text: same
